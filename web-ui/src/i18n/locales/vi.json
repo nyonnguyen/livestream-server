@@ -1,0 +1,29 @@
+{
+  "dashboard": {
+    "title": "Bảng Điều Khiển",
+    "subtitle": "Tổng quan hệ thống và thống kê",
+    "activeStreams": "Luồng Đang Hoạt Động",
+    "totalStreams": "Tổng Số Luồng",
+    "activeSessions": "Phiên Đang Hoạt Động",
+    "systemStatus": "Trạng Thái Hệ Thống",
+    "healthy": "Tốt",
+    "warning": "Cảnh Báo",
+    "systemWarning": "Cảnh Báo Hệ Thống",
+    "viewAll": "Xem Tất Cả",
+    "noActiveStreams": "Không có luồng đang hoạt động",
+    "systemHealth": "Sức Khỏe Hệ Thống",
+    "database": "Cơ Sở Dữ Liệu",
+    "srsServer": "Máy Chủ SRS",
+    "apiServer": "Máy Chủ API",
+    "sqlite": "SQLite",
+    "nodejs": "Node.js",
+    "unhealthy": "Không Ổn Định",
+    "loading": "Đang tải...",
+    "errorLoading": "Lỗi khi tải dữ liệu bảng điều khiển"
+  },
+  "common": {
+    "language": "Ngôn Ngữ",
+    "english": "Tiếng Anh",
+    "vietnamese": "Tiếng Việt"
+  }
+}

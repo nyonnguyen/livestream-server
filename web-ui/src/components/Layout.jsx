@@ -14,6 +14,7 @@ import {
   Info,
 } from 'lucide-react';
 import ChangePasswordModal from './ChangePasswordModal';
+import LanguageSwitcher from './LanguageSwitcher';
 
 export default function Layout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -125,6 +126,7 @@ export default function Layout({ children }) {
               <Menu className="w-6 h-6 text-gray-600" />
             </button>
             <div className="flex-1" />
+            <LanguageSwitcher />
           </div>
         </div>
 

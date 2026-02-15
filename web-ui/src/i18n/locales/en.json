@@ -1,0 +1,29 @@
+{
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "System overview and statistics",
+    "activeStreams": "Active Streams",
+    "totalStreams": "Total Streams",
+    "activeSessions": "Active Sessions",
+    "systemStatus": "System Status",
+    "healthy": "Healthy",
+    "warning": "Warning",
+    "systemWarning": "System Warning",
+    "viewAll": "View All",
+    "noActiveStreams": "No active streams",
+    "systemHealth": "System Health",
+    "database": "Database",
+    "srsServer": "SRS Server",
+    "apiServer": "API Server",
+    "sqlite": "SQLite",
+    "nodejs": "Node.js",
+    "unhealthy": "Unhealthy",
+    "loading": "Loading...",
+    "errorLoading": "Error loading dashboard data"
+  },
+  "common": {
+    "language": "Language",
+    "english": "English",
+    "vietnamese": "Vietnamese"
+  }
+}
