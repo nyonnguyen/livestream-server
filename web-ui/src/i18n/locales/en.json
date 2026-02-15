@@ -222,5 +222,202 @@
     "confirm": "Confirm",
     "yes": "Yes",
     "no": "No"
+  },
+  "help": {
+    "pageTitle": "Help & User Guide",
+    "pageSubtitle": "Learn how to use Nyon Livestream Server for low-latency streaming",
+    "quickStart": {
+      "title": "Quick Start",
+      "step1": "Create a stream in the Streams tab",
+      "step2": "Copy the RTMP or SRT URL",
+      "step3": "Configure your streaming software (OBS, etc.)",
+      "step4": "Start streaming and watch it live in the dashboard"
+    },
+    "streams": {
+      "title": "Managing Streams",
+      "creating": {
+        "title": "Creating a New Stream",
+        "step1": "Navigate to the <strong>Streams</strong> tab",
+        "step2": "Click the <strong>\"Add Stream\"</strong> button",
+        "step3": "Fill in the stream details:",
+        "step3a": "<strong>Stream Name:</strong> A descriptive name (e.g., \"Drone Camera 1\")",
+        "step3b": "<strong>Stream Key:</strong> Click \"Generate\" for a secure random key, enter a custom key, or leave blank to auto-generate",
+        "step3c": "<strong>Description:</strong> Optional notes about the stream",
+        "step3d": "<strong>Protocol:</strong> Choose RTMP, SRT, or RTMP + SRT",
+        "step3e": "<strong>Max Bitrate:</strong> Maximum allowed bitrate (recommended: 2500-5000 kbps for 1080p)",
+        "step4": "Click <strong>\"Create\"</strong>"
+      },
+      "editing": {
+        "title": "Editing Streams",
+        "item1": "Click the <strong>pencil icon</strong> on any stream card",
+        "item2": "Modify any field including the stream key",
+        "item3": "<strong>Warning:</strong> Changing the stream key will invalidate existing URLs. Active streams will be disconnected."
+      },
+      "deleting": {
+        "title": "Deleting Streams",
+        "item1": "Click the <strong>trash icon</strong> on the stream card",
+        "item2": "Confirm deletion",
+        "item3": "All active sessions will be terminated"
+      },
+      "regenerating": {
+        "title": "Regenerating Stream Keys",
+        "item1": "Click the <strong>key icon</strong> to generate a new random stream key",
+        "item2": "Useful if you suspect your stream key has been compromised",
+        "item3": "Update your streaming software with the new key"
+      }
+    },
+    "publish": {
+      "title": "Publishing Streams",
+      "gettingUrls": {
+        "title": "Getting Stream URLs",
+        "step1": "Expand a stream by clicking on it",
+        "step2": "You'll see URLs for both <strong>LAN</strong> and <strong>Public</strong> access",
+        "step3": "Click the copy icon to copy any URL"
+      },
+      "obs": {
+        "title": "Using OBS Studio",
+        "step1": "Open OBS Studio",
+        "step2": "Go to <strong>Settings → Stream</strong>",
+        "step3": "Select <strong>\"Custom\"</strong> as service",
+        "step4": "<strong>For RTMP:</strong>",
+        "step4a": "<strong>Server:</strong> <code>rtmp://YOUR_IP:1935/live</code>",
+        "step4b": "<strong>Stream Key:</strong> Your stream key from the dashboard",
+        "step5": "<strong>For SRT:</strong>",
+        "step5a": "<strong>Server:</strong> <code>srt://YOUR_IP:10080?streamid=YOUR_KEY</code>",
+        "step6": "Click <strong>\"Start Streaming\"</strong>"
+      },
+      "ffmpeg": {
+        "title": "Using FFmpeg (Advanced)",
+        "rtmpComment": "# RTMP Example",
+        "rtmpCommand": "ffmpeg -i input.mp4 -c:v libx264 -preset ultrafast \\\n  -b:v 3000k -c:a aac -f flv \\\n  rtmp://YOUR_IP:1935/live/YOUR_KEY",
+        "srtComment": "# SRT Example",
+        "srtCommand": "ffmpeg -i input.mp4 -c:v libx264 -preset ultrafast \\\n  -b:v 3000k -c:a aac -f mpegts \\\n  \"srt://YOUR_IP:10080?streamid=YOUR_KEY\""
+      },
+      "encoding": {
+        "title": "Recommended Encoding Settings",
+        "videoCodec": "<strong>Video Codec:</strong> H.264 (x264)",
+        "rateControl": "<strong>Rate Control:</strong> CBR (Constant Bitrate)",
+        "keyframe": "<strong>Keyframe Interval:</strong> 2 seconds",
+        "bitrate": "<strong>Bitrate:</strong> 2500-5000 kbps for 1080p, 1500-3000 kbps for 720p",
+        "audioCodec": "<strong>Audio Codec:</strong> AAC, 128-160 kbps, 48kHz"
+      }
+    },
+    "watch": {
+      "title": "Watching Streams",
+      "dashboard": {
+        "title": "In-Dashboard Playback",
+        "step1": "When a stream is live, you'll see a <strong>green \"LIVE\"</strong> badge",
+        "step2": "Click the <strong>\"Watch Live\"</strong> button",
+        "step3": "The stream will expand and auto-scroll to the video player",
+        "step4": "Use video controls to play/pause, adjust volume, or fullscreen",
+        "step5": "Typical latency: <strong>0.5-1.5 seconds</strong>"
+      },
+      "vlc": {
+        "title": "Using VLC Media Player",
+        "step1": "Open VLC",
+        "step2": "Go to <strong>Media → Open Network Stream</strong>",
+        "step3": "Copy the <strong>HTTP-FLV</strong> playback URL from dashboard",
+        "step4": "Paste it: <code>http://YOUR_IP:8080/live/YOUR_KEY.flv</code>",
+        "step5": "Click <strong>\"Play\"</strong>",
+        "step6": "<strong>Tip:</strong> In VLC settings, reduce network caching to 50-100ms for lower latency"
+      },
+      "obsRestream": {
+        "title": "Using OBS for Restreaming",
+        "step1": "Add a new <strong>Media Source</strong>",
+        "step2": "Enter the HTTP-FLV playback URL",
+        "step3": "Check <strong>\"Restart playback when source becomes active\"</strong>",
+        "step4": "You can now restream to YouTube, Twitch, etc."
+      }
+    },
+    "sessions": {
+      "title": "Monitoring Sessions",
+      "active": {
+        "title": "Active Sessions",
+        "description": "The <strong>Sessions</strong> tab shows all active streaming connections in real-time.",
+        "streamName": "<strong>Stream Name:</strong> Which stream is being published",
+        "clientId": "<strong>Client ID:</strong> Unique identifier for the connection",
+        "ipAddress": "<strong>IP Address:</strong> Source IP of the publisher",
+        "protocol": "<strong>Protocol:</strong> RTMP or SRT",
+        "duration": "<strong>Duration:</strong> How long the stream has been active",
+        "bitrate": "<strong>Bitrate:</strong> Current streaming bitrate"
+      },
+      "disconnecting": {
+        "title": "Disconnecting Sessions",
+        "item1": "Click the <strong>red X icon</strong> next to any session",
+        "item2": "The publisher will be disconnected immediately",
+        "item3": "Useful for ending unwanted or unauthorized streams"
+      },
+      "dashboardStats": {
+        "title": "Dashboard Stats",
+        "description": "The main <strong>Dashboard</strong> shows:",
+        "item1": "Total active streams",
+        "item2": "System CPU usage",
+        "item3": "System memory usage",
+        "item4": "Server uptime"
+      }
+    },
+    "settings": {
+      "title": "Settings & Configuration",
+      "password": {
+        "title": "Changing Password",
+        "step1": "Go to <strong>Settings</strong> tab",
+        "step2": "Enter your current password",
+        "step3": "Enter your new password",
+        "step4": "Confirm the new password",
+        "step5": "Click <strong>\"Update Password\"</strong>",
+        "step6": "You'll be logged out and need to log in with the new password"
+      },
+      "network": {
+        "title": "Network Configuration",
+        "item1": "The server automatically detects your <strong>LAN IP</strong>",
+        "item2": "Configure <strong>Public IP/Domain</strong> for external access",
+        "item3": "All stream URLs will show both LAN and Public variants",
+        "item4": "Use LAN URLs for local network, Public URLs for internet access"
+      },
+      "security": {
+        "title": "Stream Key Security",
+        "bestPractices": "Best Practices:",
+        "item1": "Never share stream keys publicly",
+        "item2": "Use auto-generated keys for better security",
+        "item3": "Regenerate keys if you suspect they've been compromised",
+        "item4": "Disable streams when not in use"
+      }
+    },
+    "troubleshooting": {
+      "title": "Troubleshooting",
+      "connection": {
+        "title": "Stream Won't Connect",
+        "item1": "Verify the stream URL and key are correct",
+        "item2": "Check that the stream is <strong>Active</strong> (not disabled)",
+        "item3": "Ensure firewall allows connections on ports 1935 (RTMP) and 10080 (SRT)",
+        "item4": "Try using LAN IP instead of Public IP if on same network"
+      },
+      "latency": {
+        "title": "High Latency / Buffering",
+        "item1": "Reduce bitrate in your encoder (OBS, FFmpeg)",
+        "item2": "Use wired ethernet instead of WiFi if possible",
+        "item3": "Check network bandwidth is sufficient",
+        "item4": "SRT typically has lower latency than RTMP"
+      },
+      "blackScreen": {
+        "title": "Video Player Shows Black Screen",
+        "item1": "Hard refresh the page (Ctrl+Shift+R or Cmd+Shift+R)",
+        "item2": "Verify the stream is actually publishing (check Sessions tab)",
+        "item3": "Try opening the HTTP-FLV URL directly in VLC to test",
+        "item4": "Check browser console for errors (F12 → Console)"
+      },
+      "copyButtons": {
+        "title": "Copy Buttons Not Working",
+        "item1": "Modern browsers may restrict clipboard access on HTTP (not HTTPS)",
+        "item2": "The app has a fallback method that should work",
+        "item3": "If alerts show the URL, you can manually copy it",
+        "item4": "Alternatively, manually type/copy the URL from the display"
+      }
+    },
+    "footer": {
+      "title": "Need More Help?",
+      "description": "If you can't find the answer to your question, feel free to reach out:",
+      "contactSupport": "Contact Support"
+    }
   }
 }

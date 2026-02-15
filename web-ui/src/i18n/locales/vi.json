@@ -222,5 +222,202 @@
     "confirm": "Xác Nhận",
     "yes": "Có",
     "no": "Không"
+  },
+  "help": {
+    "pageTitle": "Trợ Giúp & Hướng Dẫn",
+    "pageSubtitle": "Tìm hiểu cách sử dụng Máy Chủ Livestream Nyon cho phát trực tiếp độ trễ thấp",
+    "quickStart": {
+      "title": "Bắt Đầu Nhanh",
+      "step1": "Tạo luồng trong tab Luồng Phát",
+      "step2": "Sao chép URL RTMP hoặc SRT",
+      "step3": "Cấu hình phần mềm phát của bạn (OBS, v.v.)",
+      "step4": "Bắt đầu phát và xem trực tiếp trong bảng điều khiển"
+    },
+    "streams": {
+      "title": "Quản Lý Luồng",
+      "creating": {
+        "title": "Tạo Luồng Mới",
+        "step1": "Điều hướng đến tab <strong>Luồng Phát</strong>",
+        "step2": "Nhấn nút <strong>\"Thêm Luồng\"</strong>",
+        "step3": "Điền thông tin luồng:",
+        "step3a": "<strong>Tên Luồng:</strong> Tên mô tả (ví dụ: \"Drone Camera 1\")",
+        "step3b": "<strong>Khóa Luồng:</strong> Nhấn \"Generate\" để tạo khóa ngẫu nhiên an toàn, nhập khóa tùy chỉnh, hoặc để trống để tự động tạo",
+        "step3c": "<strong>Mô Tả:</strong> Ghi chú tùy chọn về luồng",
+        "step3d": "<strong>Giao Thức:</strong> Chọn RTMP, SRT, hoặc RTMP + SRT",
+        "step3e": "<strong>Bitrate Tối Đa:</strong> Bitrate tối đa cho phép (khuyên dùng: 2500-5000 kbps cho 1080p)",
+        "step4": "Nhấn <strong>\"Tạo\"</strong>"
+      },
+      "editing": {
+        "title": "Chỉnh Sửa Luồng",
+        "item1": "Nhấn <strong>biểu tượng bút chì</strong> trên thẻ luồng bất kỳ",
+        "item2": "Sửa đổi bất kỳ trường nào bao gồm cả khóa luồng",
+        "item3": "<strong>Cảnh báo:</strong> Thay đổi khóa luồng sẽ làm mất hiệu lực URL hiện có. Các luồng đang hoạt động sẽ bị ngắt kết nối."
+      },
+      "deleting": {
+        "title": "Xóa Luồng",
+        "item1": "Nhấn <strong>biểu tượng thùng rác</strong> trên thẻ luồng",
+        "item2": "Xác nhận xóa",
+        "item3": "Tất cả phiên hoạt động sẽ bị chấm dứt"
+      },
+      "regenerating": {
+        "title": "Tạo Lại Khóa Luồng",
+        "item1": "Nhấn <strong>biểu tượng chìa khóa</strong> để tạo khóa luồng ngẫu nhiên mới",
+        "item2": "Hữu ích nếu bạn nghi ngờ khóa luồng của mình đã bị xâm phạm",
+        "item3": "Cập nhật phần mềm phát của bạn với khóa mới"
+      }
+    },
+    "publish": {
+      "title": "Phát Luồng",
+      "gettingUrls": {
+        "title": "Lấy URL Luồng",
+        "step1": "Mở rộng luồng bằng cách nhấn vào nó",
+        "step2": "Bạn sẽ thấy URL cho cả truy cập <strong>Mạng Nội Bộ</strong> và <strong>Công Khai</strong>",
+        "step3": "Nhấn biểu tượng sao chép để sao chép bất kỳ URL nào"
+      },
+      "obs": {
+        "title": "Sử Dụng OBS Studio",
+        "step1": "Mở OBS Studio",
+        "step2": "Đi đến <strong>Settings → Stream</strong>",
+        "step3": "Chọn <strong>\"Custom\"</strong> làm dịch vụ",
+        "step4": "<strong>Cho RTMP:</strong>",
+        "step4a": "<strong>Server:</strong> <code>rtmp://YOUR_IP:1935/live</code>",
+        "step4b": "<strong>Stream Key:</strong> Khóa luồng của bạn từ bảng điều khiển",
+        "step5": "<strong>Cho SRT:</strong>",
+        "step5a": "<strong>Server:</strong> <code>srt://YOUR_IP:10080?streamid=YOUR_KEY</code>",
+        "step6": "Nhấn <strong>\"Start Streaming\"</strong>"
+      },
+      "ffmpeg": {
+        "title": "Sử Dụng FFmpeg (Nâng Cao)",
+        "rtmpComment": "# Ví dụ RTMP",
+        "rtmpCommand": "ffmpeg -i input.mp4 -c:v libx264 -preset ultrafast \\\n  -b:v 3000k -c:a aac -f flv \\\n  rtmp://YOUR_IP:1935/live/YOUR_KEY",
+        "srtComment": "# Ví dụ SRT",
+        "srtCommand": "ffmpeg -i input.mp4 -c:v libx264 -preset ultrafast \\\n  -b:v 3000k -c:a aac -f mpegts \\\n  \"srt://YOUR_IP:10080?streamid=YOUR_KEY\""
+      },
+      "encoding": {
+        "title": "Cài Đặt Mã Hóa Khuyên Dùng",
+        "videoCodec": "<strong>Video Codec:</strong> H.264 (x264)",
+        "rateControl": "<strong>Rate Control:</strong> CBR (Constant Bitrate)",
+        "keyframe": "<strong>Keyframe Interval:</strong> 2 giây",
+        "bitrate": "<strong>Bitrate:</strong> 2500-5000 kbps cho 1080p, 1500-3000 kbps cho 720p",
+        "audioCodec": "<strong>Audio Codec:</strong> AAC, 128-160 kbps, 48kHz"
+      }
+    },
+    "watch": {
+      "title": "Xem Luồng",
+      "dashboard": {
+        "title": "Phát Trong Bảng Điều Khiển",
+        "step1": "Khi luồng đang phát trực tiếp, bạn sẽ thấy huy hiệu <strong>\"TRỰC TIẾP\" màu xanh</strong>",
+        "step2": "Nhấn nút <strong>\"Xem Trực Tiếp\"</strong>",
+        "step3": "Luồng sẽ mở rộng và tự động cuộn đến trình phát video",
+        "step4": "Sử dụng các điều khiển video để phát/tạm dừng, điều chỉnh âm lượng hoặc toàn màn hình",
+        "step5": "Độ trễ điển hình: <strong>0.5-1.5 giây</strong>"
+      },
+      "vlc": {
+        "title": "Sử Dụng VLC Media Player",
+        "step1": "Mở VLC",
+        "step2": "Đi đến <strong>Media → Open Network Stream</strong>",
+        "step3": "Sao chép URL phát <strong>HTTP-FLV</strong> từ bảng điều khiển",
+        "step4": "Dán vào: <code>http://YOUR_IP:8080/live/YOUR_KEY.flv</code>",
+        "step5": "Nhấn <strong>\"Play\"</strong>",
+        "step6": "<strong>Mẹo:</strong> Trong cài đặt VLC, giảm network caching xuống 50-100ms để độ trễ thấp hơn"
+      },
+      "obsRestream": {
+        "title": "Sử Dụng OBS để Phát Lại",
+        "step1": "Thêm <strong>Media Source</strong> mới",
+        "step2": "Nhập URL phát HTTP-FLV",
+        "step3": "Chọn <strong>\"Restart playback when source becomes active\"</strong>",
+        "step4": "Bây giờ bạn có thể phát lại lên YouTube, Twitch, v.v."
+      }
+    },
+    "sessions": {
+      "title": "Giám Sát Phiên",
+      "active": {
+        "title": "Phiên Đang Hoạt Động",
+        "description": "Tab <strong>Phiên Kết Nối</strong> hiển thị tất cả kết nối phát trực tiếp đang hoạt động theo thời gian thực.",
+        "streamName": "<strong>Tên Luồng:</strong> Luồng nào đang được phát",
+        "clientId": "<strong>Client ID:</strong> Mã định danh duy nhất cho kết nối",
+        "ipAddress": "<strong>Địa Chỉ IP:</strong> IP nguồn của người phát",
+        "protocol": "<strong>Giao Thức:</strong> RTMP hoặc SRT",
+        "duration": "<strong>Thời Lượng:</strong> Luồng đã hoạt động bao lâu",
+        "bitrate": "<strong>Bitrate:</strong> Bitrate phát hiện tại"
+      },
+      "disconnecting": {
+        "title": "Ngắt Kết Nối Phiên",
+        "item1": "Nhấn <strong>biểu tượng X màu đỏ</strong> bên cạnh bất kỳ phiên nào",
+        "item2": "Người phát sẽ bị ngắt kết nối ngay lập tức",
+        "item3": "Hữu ích để kết thúc các luồng không mong muốn hoặc không được phép"
+      },
+      "dashboardStats": {
+        "title": "Thống Kê Bảng Điều Khiển",
+        "description": "<strong>Bảng Điều Khiển</strong> chính hiển thị:",
+        "item1": "Tổng số luồng đang hoạt động",
+        "item2": "Mức sử dụng CPU hệ thống",
+        "item3": "Mức sử dụng bộ nhớ hệ thống",
+        "item4": "Thời gian hoạt động của máy chủ"
+      }
+    },
+    "settings": {
+      "title": "Cài Đặt & Cấu Hình",
+      "password": {
+        "title": "Đổi Mật Khẩu",
+        "step1": "Đi đến tab <strong>Cài Đặt</strong>",
+        "step2": "Nhập mật khẩu hiện tại của bạn",
+        "step3": "Nhập mật khẩu mới của bạn",
+        "step4": "Xác nhận mật khẩu mới",
+        "step5": "Nhấn <strong>\"Cập Nhật Mật Khẩu\"</strong>",
+        "step6": "Bạn sẽ bị đăng xuất và cần đăng nhập lại với mật khẩu mới"
+      },
+      "network": {
+        "title": "Cấu Hình Mạng",
+        "item1": "Máy chủ tự động phát hiện <strong>IP Mạng Nội Bộ</strong> của bạn",
+        "item2": "Cấu hình <strong>IP Công Khai/Domain</strong> cho truy cập từ bên ngoài",
+        "item3": "Tất cả URL luồng sẽ hiển thị cả biến thể Mạng Nội Bộ và Công Khai",
+        "item4": "Sử dụng URL Mạng Nội Bộ cho mạng cục bộ, URL Công Khai cho truy cập internet"
+      },
+      "security": {
+        "title": "Bảo Mật Khóa Luồng",
+        "bestPractices": "Thực Hành Tốt Nhất:",
+        "item1": "Không bao giờ chia sẻ khóa luồng công khai",
+        "item2": "Sử dụng khóa tự động tạo để bảo mật tốt hơn",
+        "item3": "Tạo lại khóa nếu bạn nghi ngờ chúng đã bị xâm phạm",
+        "item4": "Tắt luồng khi không sử dụng"
+      }
+    },
+    "troubleshooting": {
+      "title": "Khắc Phục Sự Cố",
+      "connection": {
+        "title": "Luồng Không Kết Nối Được",
+        "item1": "Xác minh URL luồng và khóa là chính xác",
+        "item2": "Kiểm tra luồng đang <strong>Hoạt Động</strong> (không bị tắt)",
+        "item3": "Đảm bảo tường lửa cho phép kết nối trên cổng 1935 (RTMP) và 10080 (SRT)",
+        "item4": "Thử sử dụng IP Mạng Nội Bộ thay vì IP Công Khai nếu trên cùng mạng"
+      },
+      "latency": {
+        "title": "Độ Trễ Cao / Buffering",
+        "item1": "Giảm bitrate trong bộ mã hóa của bạn (OBS, FFmpeg)",
+        "item2": "Sử dụng ethernet có dây thay vì WiFi nếu có thể",
+        "item3": "Kiểm tra băng thông mạng đủ",
+        "item4": "SRT thường có độ trễ thấp hơn RTMP"
+      },
+      "blackScreen": {
+        "title": "Trình Phát Video Hiển Thị Màn Hình Đen",
+        "item1": "Tải lại trang cứng (Ctrl+Shift+R hoặc Cmd+Shift+R)",
+        "item2": "Xác minh luồng thực sự đang phát (kiểm tra tab Phiên Kết Nối)",
+        "item3": "Thử mở URL HTTP-FLV trực tiếp trong VLC để kiểm tra",
+        "item4": "Kiểm tra console trình duyệt để biết lỗi (F12 → Console)"
+      },
+      "copyButtons": {
+        "title": "Nút Sao Chép Không Hoạt Động",
+        "item1": "Trình duyệt hiện đại có thể hạn chế truy cập clipboard trên HTTP (không phải HTTPS)",
+        "item2": "Ứng dụng có phương pháp dự phòng sẽ hoạt động",
+        "item3": "Nếu cảnh báo hiển thị URL, bạn có thể sao chép thủ công",
+        "item4": "Ngoài ra, nhập/sao chép thủ công URL từ màn hình hiển thị"
+      }
+    },
+    "footer": {
+      "title": "Cần Thêm Trợ Giúp?",
+      "description": "Nếu bạn không tìm thấy câu trả lời cho câu hỏi của mình, hãy liên hệ:",
+      "contactSupport": "Liên Hệ Hỗ Trợ"
+    }
   }
 }
