@@ -31,14 +31,29 @@ A complete livestream solution running on Raspberry Pi 3+, supporting RTMP/SRT i
 
 ![Build Status](https://github.com/nyonnguyen/livestream-server/actions/workflows/build-and-publish.yml/badge.svg)
 
-### Prerequisites
+### ⚡ One-Command Installation (Easiest)
 
-- Raspberry Pi 3 with Raspberry Pi OS Lite 64-bit
-- Static IP configured on LAN
-- Docker and Docker Compose installed
-- At least 1GB RAM available
+Install everything with a single command on your Raspberry Pi:
 
-### Installation Options
+```bash
+curl -fsSL https://raw.githubusercontent.com/nyonnguyen/livestream-server/main/install.sh | bash
+```
+
+**What it does:**
+- ✅ Installs Docker and Docker Compose (if needed)
+- ✅ Downloads and configures the application
+- ✅ Generates secure credentials
+- ✅ Starts all services
+- ✅ **Enables auto-start on boot**
+- ✅ Takes 5-15 minutes
+
+**After installation**, access your server at `http://YOUR_PI_IP` and login with the credentials shown.
+
+📖 **Full installation guide:** [INSTALL.md](INSTALL.md)
+
+---
+
+### Manual Installation Options
 
 #### Option 1: Use Pre-built Images (Recommended)
 
@@ -387,6 +402,7 @@ MIT License - see LICENSE file
 
 ## Documentation
 
+- **[INSTALL.md](./INSTALL.md)** - ⚡ One-command installation guide (recommended)
 - **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Complete installation and deployment guide
 - **[TECHNICAL_DESIGN.md](./TECHNICAL_DESIGN.md)** - Architecture and technical details
 - **[CI-CD.md](./CI-CD.md)** - CI/CD pipeline and Docker image publishing
