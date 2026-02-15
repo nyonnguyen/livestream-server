@@ -29,6 +29,8 @@ A complete livestream solution running on Raspberry Pi 3+, supporting RTMP/SRT i
 
 ## Quick Start
 
+![Build Status](https://github.com/nyonnguyen/livestream-server/actions/workflows/build-and-publish.yml/badge.svg)
+
 ### Prerequisites
 
 - Raspberry Pi 3 with Raspberry Pi OS Lite 64-bit
@@ -36,11 +38,38 @@ A complete livestream solution running on Raspberry Pi 3+, supporting RTMP/SRT i
 - Docker and Docker Compose installed
 - At least 1GB RAM available
 
-### Installation
+### Installation Options
+
+#### Option 1: Use Pre-built Images (Recommended)
+
+Use official Docker images from GitHub Container Registry:
+
+```bash
+# 1. Clone repository for config files
+git clone https://github.com/nyonnguyen/livestream-server.git
+cd livestream-server
+
+# 2. Create environment file
+cp .env.example .env
+nano .env  # Configure your settings
+
+# 3. Deploy with pre-built images
+docker-compose -f docker-compose.prod.yml up -d
+```
+
+**Benefits:**
+- ✅ No build time required (~10 minutes saved)
+- ✅ Pre-tested images
+- ✅ Automatic multi-platform support (amd64/arm64)
+- ✅ Faster deployment
+
+#### Option 2: Build from Source
+
+Build Docker images locally:
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/nyonnguyen/livestream-server.git
    cd livestream-server
    ```
 
@@ -360,7 +389,9 @@ MIT License - see LICENSE file
 
 - **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Complete installation and deployment guide
 - **[TECHNICAL_DESIGN.md](./TECHNICAL_DESIGN.md)** - Architecture and technical details
+- **[CI-CD.md](./CI-CD.md)** - CI/CD pipeline and Docker image publishing
 - **[NEW_FEATURES.md](./NEW_FEATURES.md)** - Latest features and updates
+- **[SRT_FIX.md](./SRT_FIX.md)** - SRT protocol configuration and troubleshooting
 - **In-App Help** - Visit `/help` in the web interface for user guide
 
 ## Support
