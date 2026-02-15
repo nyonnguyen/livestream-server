@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="95" fill="#6366f1" stroke="#4f46e5" stroke-width="2"/>
+
+  <!-- Camera body -->
+  <rect x="60" y="80" width="60" height="45" rx="5" fill="#ffffff"/>
+
+  <!-- Camera lens -->
+  <circle cx="90" cy="102.5" r="15" fill="#4f46e5"/>
+  <circle cx="90" cy="102.5" r="10" fill="#6366f1"/>
+  <circle cx="90" cy="102.5" r="5" fill="#ffffff"/>
+
+  <!-- Viewfinder -->
+  <rect x="105" y="85" width="10" height="35" rx="2" fill="#e0e7ff"/>
+
+  <!-- Signal waves (broadcast) -->
+  <path d="M 130 102.5 Q 145 92.5 145 102.5 Q 145 112.5 130 102.5"
+        fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+  <path d="M 140 102.5 Q 160 87.5 160 102.5 Q 160 117.5 140 102.5"
+        fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+  <path d="M 150 102.5 Q 175 82.5 175 102.5 Q 175 122.5 150 102.5"
+        fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+
+  <!-- Record dot (live indicator) -->
+  <circle cx="70" cy="90" r="5" fill="#ef4444">
+    <animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- Tripod legs -->
+  <line x1="90" y1="125" x2="80" y2="145" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+  <line x1="90" y1="125" x2="100" y2="145" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+  <line x1="90" y1="125" x2="90" y2="145" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+</svg>
