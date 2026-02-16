@@ -156,7 +156,7 @@
     "subtitle": "Nền Tảng Phát Độ Trễ Thấp",
     "version": "Phiên Bản:",
     "versionNumber": "0.9.0-beta",
-    "currentVersion": "Phiên Bản Hiện Tại: {version}",
+    "currentVersion": "Phiên Bản Hiện Tại: {{version}}",
     "betaNotice": "Đây là phiên bản beta. Dự án đang được phát triển tích cực. Phiên bản 1.0.0 sẽ được phát hành khi tất cả các tính năng cốt lõi ổn định và được kiểm tra kỹ lưỡng.",
     "author": "Tác Giả",
     "project": "Dự Án",
