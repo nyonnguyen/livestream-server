@@ -4,7 +4,11 @@ const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 
-const VERSION_FILE = path.join(__dirname, '../../../VERSION');
+// In Docker container, VERSION is mounted at /app/VERSION
+// In local development, it's at project root
+const VERSION_FILE = process.env.VERSION_FILE || (
+  fs.existsSync('/app/VERSION') ? '/app/VERSION' : path.join(__dirname, '../../../VERSION')
+);
 const GITHUB_REPO = 'nyonnguyen/livestream-server';
 
 /**
