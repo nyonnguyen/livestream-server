@@ -170,11 +170,32 @@ function getIPByInterface(interfaceName) {
  */
 function getServerIP(db) {
   try {
+    // Priority 1: Check if SERVER_IP environment variable is set (from install script)
+    if (process.env.SERVER_IP) {
+      const envIP = process.env.SERVER_IP.trim();
+      // Validate it's a proper IP address
+      if (envIP && envIP !== 'localhost' && envIP !== '127.0.0.1' && /^[\d.]+$/.test(envIP)) {
+        return envIP;
+      }
+    }
+
+    // Priority 2: Check database configuration
     const modeRow = db.prepare('SELECT value FROM config WHERE key = ?').get('server_ip_mode');
 
     if (!modeRow || modeRow.value === 'auto') {
       // Auto-detect mode
-      return getBestIPAddress();
+      const detected = getBestIPAddress();
+
+      // Filter out Docker IPs (172.17-31.x.x) in auto-detect mode
+      if (detected && detected.startsWith('172.')) {
+        const octets = detected.split('.');
+        if (octets[1] >= 17 && octets[1] <= 31) {
+          console.warn(`Auto-detected Docker IP ${detected}. Consider setting SERVER_IP environment variable.`);
+          return null; // Return null to force fallback to hostname
+        }
+      }
+
+      return detected;
     } else {
       // Manual mode - get the specific IP or interface
       const ipRow = db.prepare('SELECT value FROM config WHERE key = ?').get('server_ip_address');
@@ -182,6 +203,12 @@ function getServerIP(db) {
     }
   } catch (error) {
     console.error('Error getting server IP from config:', error);
+
+    // Fallback to environment variable if database fails
+    if (process.env.SERVER_IP) {
+      return process.env.SERVER_IP.trim();
+    }
+
     return getBestIPAddress();
   }
 }
