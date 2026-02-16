@@ -156,7 +156,7 @@
     "subtitle": "Low-Latency Streaming Platform",
     "version": "Version:",
     "versionNumber": "0.9.0-beta",
-    "currentVersion": "Current Version: {version}",
+    "currentVersion": "Current Version: {{version}}",
     "betaNotice": "This is a beta version. The project is under active development. Version 1.0.0 will be released once all core features are stable and thoroughly tested.",
     "author": "Author",
     "project": "Project",
