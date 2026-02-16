@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-02-16
+
+### Changed
+- Nyon/add version display (#15)
+
+
+
 ### Added
 - Automatic version checking and update notifications
 - Version management API endpoints
@@ -78,3 +85,5 @@ Commit messages should follow:
 
 [Unreleased]: https://github.com/nyonnguyen/livestream-server/compare/v1.0.0...HEAD
 [1.0.0]: https://github.com/nyonnguyen/livestream-server/releases/tag/v1.0.0
+
+[1.1.0]: https://github.com/nyonnguyen/livestream-server/compare/v1.0.0...v1.1.0
