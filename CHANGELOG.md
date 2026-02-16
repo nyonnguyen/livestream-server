@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.4] - 2026-02-16
+
+### Changed
+- Nyon/fix version display and update notification (#21)
+
+
+
 ## [1.2.3] - 2026-02-16
 
 ### Changed
@@ -123,3 +130,5 @@ Commit messages should follow:
 [1.2.2]: https://github.com/nyonnguyen/livestream-server/compare/v1.2.1...v1.2.2
 
 [1.2.3]: https://github.com/nyonnguyen/livestream-server/compare/v1.2.2...v1.2.3
+
+[1.2.4]: https://github.com/nyonnguyen/livestream-server/compare/v1.2.3...v1.2.4
