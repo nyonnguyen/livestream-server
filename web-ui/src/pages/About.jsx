@@ -10,6 +10,9 @@ export default function About() {
   const [checking, setChecking] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [updating, setUpdating] = useState(false);
+  const [updateStatus, setUpdateStatus] = useState(null);
+  const [showUpdateConfirm, setShowUpdateConfirm] = useState(false);
 
   useEffect(() => {
     fetchVersion();
@@ -40,6 +43,68 @@ export default function About() {
       setError('Unable to check for updates');
     } finally {
       setChecking(false);
+    }
+  };
+
+  const handleUpdate = async () => {
+    setShowUpdateConfirm(false);
+    setUpdating(true);
+    setUpdateStatus('Starting update...');
+    setError(null);
+
+    try {
+      // Start the update
+      const response = await axios.post('/api/system/update');
+
+      if (!response.data.success) {
+        throw new Error(response.data.error || 'Failed to start update');
+      }
+
+      // Poll for status
+      const pollInterval = setInterval(async () => {
+        try {
+          const statusResponse = await axios.get('/api/system/update/status');
+          const { status, log } = statusResponse.data.data;
+
+          if (status === 'complete') {
+            clearInterval(pollInterval);
+            setUpdating(false);
+            setUpdateStatus('Update completed successfully! Please refresh the page.');
+            // Refresh version info after update
+            setTimeout(() => {
+              window.location.reload();
+            }, 3000);
+          } else if (status === 'failed') {
+            clearInterval(pollInterval);
+            setUpdating(false);
+            setError('Update failed. Please check the logs or try manual update.');
+            setUpdateStatus(null);
+          } else {
+            // Extract last line from log as status
+            const lines = log.split('\n').filter(line => line.trim());
+            const lastLine = lines[lines.length - 1] || 'Updating...';
+            setUpdateStatus(lastLine);
+          }
+        } catch (err) {
+          console.error('Failed to check update status:', err);
+        }
+      }, 2000); // Poll every 2 seconds
+
+      // Stop polling after 5 minutes (timeout)
+      setTimeout(() => {
+        clearInterval(pollInterval);
+        if (updating) {
+          setUpdating(false);
+          setError('Update timeout. Please check the server status.');
+          setUpdateStatus(null);
+        }
+      }, 5 * 60 * 1000);
+
+    } catch (err) {
+      console.error('Failed to start update:', err);
+      setUpdating(false);
+      setError(err.response?.data?.error || 'Failed to start update');
+      setUpdateStatus(null);
     }
   };
 
@@ -187,20 +252,44 @@ export default function About() {
               {checking ? 'Checking for updates...' : 'Check for Updates'}
             </button>
 
-            {/* Update Now Button - shown when update is available */}
+            {/* View Update Button - shown when update is available */}
             {updateInfo && updateInfo.hasUpdate && (
-              <a
-                href={updateInfo.releaseUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 font-medium"
-                title="View update on GitHub"
-              >
-                <ExternalLink className="w-4 h-4" />
-                View Update
-              </a>
+              <>
+                <a
+                  href={updateInfo.releaseUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 font-medium"
+                  title="View update on GitHub"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  View Update
+                </a>
+
+                {/* Update Now Button */}
+                <button
+                  onClick={() => setShowUpdateConfirm(true)}
+                  disabled={updating}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Update now via web interface"
+                >
+                  <RefreshCw className={`w-4 h-4 ${updating ? 'animate-spin' : ''}`} />
+                  {updating ? 'Updating...' : 'Update Now'}
+                </button>
+              </>
             )}
           </div>
+
+          {/* Update Status */}
+          {updateStatus && (
+            <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-2">
+              <RefreshCw className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5 animate-spin" />
+              <div>
+                <p className="text-blue-900 font-medium text-sm">Updating</p>
+                <p className="text-blue-800 text-sm">{updateStatus}</p>
+              </div>
+            </div>
+          )}
 
           {/* Error Message */}
           {error && (
@@ -314,6 +403,36 @@ export default function About() {
         <p>{t('about.footer')}</p>
         <p className="mt-1">{t('about.footerLove')}</p>
       </div>
+
+      {/* Update Confirmation Modal */}
+      {showUpdateConfirm && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Confirm Update</h3>
+            <p className="text-gray-700 mb-6">
+              Are you sure you want to update from <strong>{updateInfo?.current}</strong> to <strong>{updateInfo?.latest}</strong>?
+            </p>
+            <p className="text-sm text-gray-600 mb-6">
+              The server will automatically pull the latest code, rebuild containers, and restart services. This may take 2-3 minutes.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowUpdateConfirm(false)}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpdate}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Update Now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
