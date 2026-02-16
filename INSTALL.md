@@ -208,6 +208,25 @@ docker rmi ossrs/srs:5
 
 ## Troubleshooting Installation
 
+### Python Externally Managed Environment Error
+
+**Problem:** Error message: `externally-managed-environment` when running install script on newer Raspberry Pi OS
+
+**Cause:** Newer Raspberry Pi OS (Bookworm+) prevents global Python package installation to avoid system conflicts
+
+**Solution:** The updated install script (v1.1+) fixes this by using Docker Compose v2 instead of installing via pip.
+
+If you're using an old install script:
+```bash
+# Use the latest install script
+curl -fsSL https://raw.githubusercontent.com/nyonnguyen/livestream-server/main/install.sh | bash
+
+# OR manually install Docker Compose plugin
+sudo apt-get install docker-compose-plugin
+```
+
+**Note:** Docker Compose v2 (`docker compose`) is now included with Docker and doesn't require Python pip.
+
 ### Installation Fails with Permission Error
 
 **Problem:** Script fails with "permission denied"

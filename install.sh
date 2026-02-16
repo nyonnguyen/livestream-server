@@ -111,21 +111,37 @@ install_docker() {
     print_warning "You may need to log out and back in for docker group changes to take effect"
 }
 
-# Install Docker Compose
-install_docker_compose() {
-    if command -v docker-compose &> /dev/null; then
-        print_success "Docker Compose is already installed ($(docker-compose --version))"
-        return
+# Check Docker Compose
+check_docker_compose() {
+    # Check for Docker Compose v2 (comes with Docker)
+    if docker compose version &> /dev/null; then
+        print_success "Docker Compose v2 is available ($(docker compose version))"
+        return 0
     fi
 
-    print_step "Installing Docker Compose..."
+    # Check for legacy docker-compose v1
+    if command -v docker-compose &> /dev/null; then
+        print_success "Docker Compose v1 is available ($(docker-compose --version))"
+        print_info "Note: Docker Compose v2 is recommended. The script will use v1."
+        return 0
+    fi
 
-    # Install via pip for better ARM compatibility
-    sudo apt-get update
-    sudo apt-get install -y python3-pip libffi-dev
-    sudo pip3 install docker-compose
+    print_error "Docker Compose not found!"
+    print_info "Docker Compose v2 should be installed with Docker."
+    print_info "If using older Docker, install Compose with:"
+    print_info "  sudo apt-get install docker-compose-plugin"
+    return 1
+}
 
-    print_success "Docker Compose installed successfully"
+# Helper function to run docker-compose commands (supports both v1 and v2)
+run_compose() {
+    if docker compose version &> /dev/null; then
+        # Use Docker Compose v2
+        docker compose "$@"
+    else
+        # Use Docker Compose v1
+        docker-compose "$@"
+    fi
 }
 
 # Clone or update repository
@@ -238,9 +254,9 @@ start_application() {
 
     # Start services
     if [ "$USE_PROD" = true ]; then
-        docker-compose -f docker-compose.prod.yml up -d
+        run_compose -f docker-compose.prod.yml up -d
     else
-        docker-compose up -d --build
+        run_compose up -d --build
     fi
 
     print_success "Application started"
@@ -249,6 +265,20 @@ start_application() {
 # Setup systemd service for auto-start on boot
 setup_systemd_service() {
     print_step "Setting up auto-start on boot..."
+
+    # Determine which docker-compose command to use
+    local COMPOSE_CMD
+    if docker compose version &> /dev/null; then
+        COMPOSE_CMD="docker compose"
+    else
+        COMPOSE_CMD="docker-compose"
+    fi
+
+    # Determine compose file
+    local COMPOSE_FILE="docker-compose.yml"
+    if [ "$USE_PROD" = true ]; then
+        COMPOSE_FILE="docker-compose.prod.yml"
+    fi
 
     sudo tee /etc/systemd/system/${SERVICE_NAME}.service > /dev/null <<EOF
 [Unit]
@@ -261,8 +291,8 @@ Wants=network-online.target
 Type=oneshot
 RemainAfterExit=yes
 WorkingDirectory=$INSTALL_DIR
-ExecStart=/usr/local/bin/docker-compose -f ${USE_PROD:+docker-compose.prod.yml} ${USE_PROD:-docker-compose.yml} up -d
-ExecStop=/usr/local/bin/docker-compose -f ${USE_PROD:+docker-compose.prod.yml} ${USE_PROD:-docker-compose.yml} down
+ExecStart=$COMPOSE_CMD -f $COMPOSE_FILE up -d
+ExecStop=$COMPOSE_CMD -f $COMPOSE_FILE down
 User=$USER
 Group=$USER
 
@@ -340,7 +370,7 @@ main() {
     check_root
     check_requirements
     install_docker
-    install_docker_compose
+    check_docker_compose || exit 1
     setup_repository
     generate_secrets
     setup_environment
