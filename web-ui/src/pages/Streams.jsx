@@ -92,9 +92,12 @@ export default function Streams() {
   const fetchStreams = async () => {
     try {
       const response = await streamsAPI.getAll();
-      setStreams(response.data.data);
+      // Ensure streams is always an array
+      const streamsData = response.data.data;
+      setStreams(Array.isArray(streamsData) ? streamsData : []);
     } catch (error) {
       console.error('Error fetching streams:', error);
+      setStreams([]); // Reset to empty array on error
     } finally {
       setLoading(false);
     }

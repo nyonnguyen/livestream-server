@@ -24,9 +24,20 @@ export default function Settings() {
   const [detectingPublicIP, setDetectingPublicIP] = useState(false);
 
   useEffect(() => {
-    fetchConfig();
-    fetchNetworkInterfaces();
-    fetchNetworkConfig();
+    // Load data sequentially to avoid overwhelming the API
+    const loadData = async () => {
+      try {
+        await fetchConfig();
+        await fetchNetworkConfig();
+        await fetchNetworkInterfaces();
+      } catch (error) {
+        console.error('Error loading settings:', error);
+      } finally {
+        setLoading(false);
+        setLoadingNetwork(false);
+      }
+    };
+    loadData();
   }, []);
 
   const fetchConfig = async () => {
@@ -35,8 +46,10 @@ export default function Settings() {
       setConfig(response.data.data);
     } catch (error) {
       console.error('Error fetching config:', error);
-    } finally {
-      setLoading(false);
+      setMessage({
+        type: 'error',
+        text: 'Failed to load configuration. Please refresh the page.'
+      });
     }
   };
 
@@ -71,8 +84,10 @@ export default function Settings() {
       });
     } catch (error) {
       console.error('Error fetching network config:', error);
-    } finally {
-      setLoadingNetwork(false);
+      setMessage({
+        type: 'error',
+        text: 'Failed to load network configuration.'
+      });
     }
   };
 

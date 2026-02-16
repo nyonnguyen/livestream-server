@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Smartphone, Download } from 'lucide-react';
+import { X, Smartphone, Download, Copy } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
 export default function QRCodeModal({ stream, onClose }) {
@@ -40,6 +40,37 @@ export default function QRCodeModal({ stream, onClose }) {
   // Direct RTMP URL for manual entry
   const rtmpUrl = `rtmp://${serverIp}:1935/live/${stream.stream_key}`;
   const playbackUrl = `http://${serverIp}:8080/live/${stream.stream_key}.flv`;
+
+  const copyToClipboard = async (text, label) => {
+    try {
+      // Try modern clipboard API first
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        alert(`${label} copied to clipboard!`);
+      } else {
+        // Fallback to textarea method
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+
+        const successful = document.execCommand('copy');
+        document.body.removeChild(textarea);
+
+        if (successful) {
+          alert(`${label} copied to clipboard!`);
+        } else {
+          alert('Failed to copy. Please copy manually.');
+        }
+      }
+    } catch (err) {
+      console.error('Copy failed:', err);
+      alert('Failed to copy. Please copy manually.');
+    }
+  };
 
   const handleDownloadQR = () => {
     const svg = document.getElementById('qr-code-svg');
@@ -125,8 +156,18 @@ export default function QRCodeModal({ stream, onClose }) {
                 <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
                   RTMP URL
                 </label>
-                <div className="mt-1 p-2 bg-gray-50 rounded text-sm font-mono break-all">
-                  {rtmpUrl}
+                <div className="mt-1 flex gap-2">
+                  <div className="flex-1 p-2 bg-gray-50 rounded text-sm font-mono break-all">
+                    {rtmpUrl}
+                  </div>
+                  <button
+                    onClick={() => copyToClipboard(rtmpUrl, 'RTMP URL')}
+                    className="px-3 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 flex items-center gap-1 whitespace-nowrap"
+                    title="Copy RTMP URL"
+                  >
+                    <Copy className="w-4 h-4" />
+                    <span className="text-xs">Copy</span>
+                  </button>
                 </div>
               </div>
 
@@ -135,8 +176,18 @@ export default function QRCodeModal({ stream, onClose }) {
                 <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
                   Playback URL
                 </label>
-                <div className="mt-1 p-2 bg-gray-50 rounded text-sm font-mono break-all">
-                  {playbackUrl}
+                <div className="mt-1 flex gap-2">
+                  <div className="flex-1 p-2 bg-gray-50 rounded text-sm font-mono break-all">
+                    {playbackUrl}
+                  </div>
+                  <button
+                    onClick={() => copyToClipboard(playbackUrl, 'Playback URL')}
+                    className="px-3 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 flex items-center gap-1 whitespace-nowrap"
+                    title="Copy Playback URL"
+                  >
+                    <Copy className="w-4 h-4" />
+                    <span className="text-xs">Copy</span>
+                  </button>
                 </div>
               </div>
 
