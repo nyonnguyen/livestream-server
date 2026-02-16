@@ -84,12 +84,15 @@ jobs:
 
           # Copy necessary files for deployment
           cp docker-compose.yml artifacts/
+          cp docker-compose.prod.yml artifacts/
           cp .env.example artifacts/
           cp -r srs artifacts/
           cp -r nginx artifacts/
           cp -r scripts artifacts/
           cp README.md artifacts/
-          cp DEPLOYMENT.md artifacts/
+          cp VERSION artifacts/
+          cp update.sh artifacts/
+          cp -r docs artifacts/
 
           # Create archive
           cd artifacts
