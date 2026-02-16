@@ -32,19 +32,25 @@ curl -fsSL https://raw.githubusercontent.com/nyonnguyen/livestream-server/main/i
 - Docker Compose (if not installed)
 - Adds your user to docker group
 
-### 3. Setup Application
+### 3. Configure Network (if needed)
+- Detects IPv6 DNS issues that may prevent Docker from pulling images
+- Configures reliable DNS servers (Google DNS)
+- Disables IPv6 to prevent timeout issues
+- Automatically fixes common connectivity problems
+
+### 4. Setup Application
 - Clones repository to `/opt/livestream-server`
 - Generates secure JWT secret
 - Creates random admin password
 - Generates default stream keys
 - Configures environment variables
 
-### 4. Start Services
+### 5. Start Services
 - Pulls pre-built images (if available) OR builds locally
 - Starts all Docker containers
 - Creates systemd service for auto-start
 
-### 5. Configure Auto-Start
+### 6. Configure Auto-Start
 - Creates systemd service: `livestream-server.service`
 - Enables service on boot
 - Application starts automatically after reboot
@@ -207,6 +213,48 @@ docker rmi ossrs/srs:5
 ---
 
 ## Troubleshooting Installation
+
+### Docker Registry DNS Timeout (IPv6 Issue)
+
+**Problem:** Error message when pulling Docker images:
+```
+dial tcp: lookup registry-1.docker.io on [fe80::...]:53: read udp [...]:53: i/o timeout
+Error response from daemon: failed to resolve reference...
+```
+
+**Cause:** NetworkManager configured with IPv6 link-local DNS server that times out when Docker tries to resolve Docker Hub registry.
+
+**Solution:** The install script (v1.2+) automatically detects and fixes this issue by:
+- Configuring the network connection to use Google DNS (8.8.8.8, 8.8.4.4)
+- Disabling IPv6 to prevent timeout issues
+- Restarting Docker with the new DNS configuration
+
+If you still encounter DNS issues after installation:
+
+```bash
+# Check current DNS configuration
+cat /etc/resolv.conf
+
+# Get active connection name
+nmcli connection show --active
+
+# Configure DNS manually (replace CONNECTION_NAME with your actual connection)
+sudo nmcli connection modify "CONNECTION_NAME" ipv4.dns "8.8.8.8 8.8.4.4"
+sudo nmcli connection modify "CONNECTION_NAME" ipv4.ignore-auto-dns yes
+sudo nmcli connection modify "CONNECTION_NAME" ipv6.method ignore
+
+# Restart connection
+sudo nmcli connection down "CONNECTION_NAME"
+sudo nmcli connection up "CONNECTION_NAME"
+
+# Restart Docker
+sudo systemctl restart docker
+
+# Test Docker DNS
+docker pull hello-world
+```
+
+**Note:** This issue is common on Raspberry Pi OS with NetworkManager when using WiFi with IPv6 enabled.
 
 ### Python Externally Managed Environment Error
 
@@ -474,6 +522,6 @@ After installation:
 
 ---
 
-**Installation Script Version:** 1.0.0
+**Installation Script Version:** 1.2.0
 **Last Updated:** February 2026
 **Author:** Nyon (nyonnguyen@gmail.com)
