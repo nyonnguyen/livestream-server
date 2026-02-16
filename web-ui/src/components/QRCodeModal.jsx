@@ -3,43 +3,74 @@ import { X, Smartphone, Download, Copy } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
 export default function QRCodeModal({ stream, onClose }) {
-  const [serverIp, setServerIp] = useState(window.location.hostname);
-  const [qrMode, setQrMode] = useState('lan');
+  const [lanIp, setLanIp] = useState(window.location.hostname);
+  const [publicIp, setPublicIp] = useState(null);
+  const [hostname, setHostname] = useState(null);
+  const [selectedMode, setSelectedMode] = useState('lan');
+  const [defaultMode, setDefaultMode] = useState('lan');
 
   useEffect(() => {
-    fetchQRIP();
+    fetchNetworkConfig();
   }, []);
 
-  const fetchQRIP = async () => {
+  const fetchNetworkConfig = async () => {
     try {
-      // Use QR IP endpoint which respects the QR mode setting
-      const response = await fetch('/api/network/qr-ip');
-      const data = await response.json();
-      if (data.success && data.data.ip) {
-        setServerIp(data.data.ip);
-        setQrMode(data.data.mode);
-      } else {
-        // Fallback to hostname if no IP found
-        setServerIp(window.location.hostname);
+      // Get network configuration
+      const configResponse = await fetch('/api/network/config');
+      const configData = await configResponse.json();
+
+      if (configData.success) {
+        const config = configData.data;
+
+        // Get LAN IP
+        const serverIpResponse = await fetch('/api/network/server-ip');
+        const serverIpData = await serverIpResponse.json();
+        if (serverIpData.success && serverIpData.data.ip) {
+          setLanIp(serverIpData.data.ip);
+        }
+
+        // Get public IP and hostname from config
+        if (config.server_public_ip) {
+          setPublicIp(config.server_public_ip);
+        }
+        if (config.server_hostname) {
+          setHostname(config.server_hostname);
+        }
+
+        // Set default mode based on QR mode setting
+        const mode = config.server_qr_mode || 'lan';
+        setDefaultMode(mode);
+        setSelectedMode(mode);
       }
     } catch (error) {
-      console.error('Error fetching QR IP:', error);
-      // Fallback to hostname
-      setServerIp(window.location.hostname);
+      console.error('Error fetching network config:', error);
+      setLanIp(window.location.hostname);
     }
   };
 
   if (!stream) return null;
 
+  // Determine which IP to use based on selected mode
+  const getActiveIp = () => {
+    if (selectedMode === 'public') {
+      // Priority: hostname > public IP > LAN IP (fallback)
+      return hostname || publicIp || lanIp;
+    }
+    return lanIp;
+  };
+
+  const activeIp = getActiveIp();
+  const hasPublicConfig = !!(hostname || publicIp);
+
   const port = window.location.port ? `:${window.location.port}` : '';
   const protocol = window.location.protocol;
 
   // Mobile-friendly web URL that auto-copies RTMP to clipboard
-  const mobileUrl = `${protocol}//${serverIp}${port}/mobile/${stream.stream_key}`;
+  const mobileUrl = `${protocol}//${activeIp}${port}/mobile/${stream.stream_key}`;
 
   // Direct RTMP URL for manual entry
-  const rtmpUrl = `rtmp://${serverIp}:1935/live/${stream.stream_key}`;
-  const playbackUrl = `http://${serverIp}:8080/live/${stream.stream_key}.flv`;
+  const rtmpUrl = `rtmp://${activeIp}:1935/live/${stream.stream_key}`;
+  const playbackUrl = `http://${activeIp}:8080/live/${stream.stream_key}.flv`;
 
   const copyToClipboard = async (text, label) => {
     try {
@@ -107,6 +138,41 @@ export default function QRCodeModal({ stream, onClose }) {
           </button>
         </div>
 
+        {/* Mode Selector */}
+        <div className="mb-4">
+          <div className="flex gap-2 bg-gray-100 p-1 rounded-lg">
+            <button
+              onClick={() => setSelectedMode('lan')}
+              className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                selectedMode === 'lan'
+                  ? 'bg-white text-blue-700 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              🏠 Local Network
+            </button>
+            <button
+              onClick={() => setSelectedMode('public')}
+              disabled={!hasPublicConfig}
+              className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                selectedMode === 'public'
+                  ? 'bg-white text-green-700 shadow-sm'
+                  : hasPublicConfig
+                  ? 'text-gray-600 hover:text-gray-900'
+                  : 'text-gray-400 cursor-not-allowed'
+              }`}
+              title={!hasPublicConfig ? 'Configure public IP or hostname in Settings first' : ''}
+            >
+              🌐 Public Access
+            </button>
+          </div>
+          {!hasPublicConfig && (
+            <p className="mt-2 text-xs text-yellow-700 bg-yellow-50 border border-yellow-200 rounded p-2">
+              ⚠️ Public access not configured. Go to Settings → Network to set your public IP or hostname.
+            </p>
+          )}
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* QR Code */}
           <div className="flex flex-col items-center">
@@ -123,21 +189,26 @@ export default function QRCodeModal({ stream, onClose }) {
               <p className="text-xs text-gray-600">
                 Scan with phone camera to auto-copy RTMP URL
               </p>
-              <div className="flex justify-center">
-                {qrMode === 'public' ? (
-                  <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full font-medium">
-                    🌐 Public IP Mode
-                  </span>
-                ) : (
-                  <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full font-medium">
-                    🏠 LAN IP Mode
-                  </span>
-                )}
+              <div className="flex flex-col items-center gap-2">
+                <div className="flex justify-center">
+                  {selectedMode === 'public' ? (
+                    <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full font-medium">
+                      🌐 Public IP Mode
+                    </span>
+                  ) : (
+                    <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full font-medium">
+                      🏠 LAN IP Mode
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-gray-500 font-mono">
+                  Using: {activeIp}
+                </p>
               </div>
             </div>
             <button
               onClick={handleDownloadQR}
-              className="btn-secondary flex items-center text-sm"
+              className="btn-secondary flex items-center text-sm mt-2"
             >
               <Download className="w-4 h-4 mr-2" />
               Download QR Code
