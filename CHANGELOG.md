@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-02-16
+
+### Changed
+- fix: add authentication to system update API calls (#27)
+
+
+
 ## [1.5.0] - 2026-02-16
 
 ### Changed
@@ -177,3 +184,5 @@ Commit messages should follow:
 [1.4.0]: https://github.com/nyonnguyen/livestream-server/compare/v1.3.0...v1.4.0
 
 [1.5.0]: https://github.com/nyonnguyen/livestream-server/compare/v1.4.0...v1.5.0
+
+[1.6.0]: https://github.com/nyonnguyen/livestream-server/compare/v1.5.0...v1.6.0
