@@ -204,10 +204,17 @@ function initializeDefaultData() {
     // Create default configuration
     const maxConcurrentStreams = process.env.MAX_CONCURRENT_STREAMS || '3';
 
-    db.prepare(`
+    const configStmt = db.prepare(`
       INSERT INTO config (key, value, description)
       VALUES (?, ?, ?)
-    `).run('max_concurrent_streams', maxConcurrentStreams, 'Maximum number of concurrent streams allowed');
+    `);
+
+    // Add all default config values
+    configStmt.run('max_concurrent_streams', maxConcurrentStreams, 'Maximum number of concurrent streams allowed');
+    configStmt.run('require_authentication', 'true', 'Require authentication for publishing streams');
+    configStmt.run('allow_recording', 'false', 'Allow recording of streams');
+    configStmt.run('default_protocol', 'rtmp', 'Default streaming protocol (rtmp or srt)');
+    configStmt.run('session_timeout', '300', 'Session timeout in seconds');
 
     console.log('✓ Created default configuration');
   }
@@ -218,9 +225,37 @@ if (!isDatabaseInitialized()) {
   initializeSchema();
 }
 
+// Migrate missing config entries (for existing databases)
+function migrateConfigEntries() {
+  const requiredConfigs = [
+    { key: 'require_authentication', value: 'true', description: 'Require authentication for publishing streams' },
+    { key: 'allow_recording', value: 'false', description: 'Allow recording of streams' },
+    { key: 'default_protocol', value: 'rtmp', description: 'Default streaming protocol (rtmp or srt)' },
+    { key: 'session_timeout', value: '300', description: 'Session timeout in seconds' }
+  ];
+
+  const configStmt = db.prepare(`
+    INSERT OR IGNORE INTO config (key, value, description)
+    VALUES (?, ?, ?)
+  `);
+
+  let added = 0;
+  requiredConfigs.forEach(config => {
+    const result = configStmt.run(config.key, config.value, config.description);
+    if (result.changes > 0) {
+      added++;
+    }
+  });
+
+  if (added > 0) {
+    console.log(`✓ Migrated ${added} missing config entries`);
+  }
+}
+
 // Initialize default data on first run
 try {
   initializeDefaultData();
+  migrateConfigEntries();
 } catch (error) {
   console.error('Error initializing default data:', error.message);
 }
