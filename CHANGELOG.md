@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.1] - 2026-02-16
+
+### Changed
+- fix: prioritize fix pattern in version bump detection (#29)
+
+
+
 ## [1.7.0] - 2026-02-16
 
 ### Changed
@@ -195,3 +202,5 @@ Commit messages should follow:
 [1.6.0]: https://github.com/nyonnguyen/livestream-server/compare/v1.5.0...v1.6.0
 
 [1.7.0]: https://github.com/nyonnguyen/livestream-server/compare/v1.6.0...v1.7.0
+
+[1.7.1]: https://github.com/nyonnguyen/livestream-server/compare/v1.7.0...v1.7.1
