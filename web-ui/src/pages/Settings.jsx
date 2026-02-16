@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { configAPI } from '../services/api';
 import { Save, Key, Wifi, Network, Globe, RefreshCw } from 'lucide-react';
 import ChangePasswordModal from '../components/ChangePasswordModal';
 import axios from 'axios';
 
 export default function Settings() {
+  const { t } = useTranslation();
   const [config, setConfig] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -95,14 +97,14 @@ export default function Settings() {
 
       setMessage({
         type: 'success',
-        text: 'Settings saved successfully! Network IP changes will apply to QR codes immediately when you reopen them.'
+        text: t('settings.savedSuccess')
       });
       fetchConfig();
       fetchNetworkConfig();
     } catch (error) {
       setMessage({
         type: 'error',
-        text: error.response?.data?.error || 'Failed to save settings',
+        text: error.response?.data?.error || t('settings.saveFailed'),
       });
     } finally {
       setSaving(false);
@@ -130,19 +132,19 @@ export default function Settings() {
         });
         setMessage({
           type: 'success',
-          text: `Public IP detected: ${response.data.data.publicIP}`
+          text: t('settings.publicIpDetected', { ip: response.data.data.publicIP })
         });
       } else {
         setMessage({
           type: 'error',
-          text: 'Could not detect public IP. Please enter manually.'
+          text: t('settings.publicIpDetectFailed')
         });
       }
     } catch (error) {
       console.error('Error detecting public IP:', error);
       setMessage({
         type: 'error',
-        text: 'Failed to detect public IP. Please check your internet connection.'
+        text: t('settings.publicIpDetectError')
       });
     } finally {
       setDetectingPublicIP(false);
@@ -152,7 +154,7 @@ export default function Settings() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Loading...</div>
+        <div className="text-gray-500">{t('common.loading')}</div>
       </div>
     );
   }
@@ -160,8 +162,8 @@ export default function Settings() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-        <p className="text-gray-600">Configure system settings</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('settings.title')}</h1>
+        <p className="text-gray-600">{t('settings.subtitle')}</p>
       </div>
 
       {message && (
@@ -180,12 +182,12 @@ export default function Settings() {
         {/* Streaming Configuration */}
         <div className="card">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Streaming Configuration
+            {t('settings.streamingConfig')}
           </h2>
 
           <div className="space-y-4">
             <div>
-              <label className="label">Max Concurrent Streams</label>
+              <label className="label">{t('settings.maxConcurrentStreams')}</label>
               <input
                 type="range"
                 min="1"
@@ -209,7 +211,7 @@ export default function Settings() {
             </div>
 
             <div>
-              <label className="label">Default Protocol</label>
+              <label className="label">{t('settings.defaultProtocol')}</label>
               <select
                 className="input"
                 value={config.default_protocol?.value || 'rtmp'}
@@ -224,7 +226,7 @@ export default function Settings() {
             </div>
 
             <div>
-              <label className="label">Session Timeout (seconds)</label>
+              <label className="label">{t('settings.sessionTimeout')}</label>
               <input
                 type="number"
                 className="input"
@@ -243,14 +245,14 @@ export default function Settings() {
         {/* Security Settings */}
         <div className="card">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Security Settings
+            {t('settings.securitySettings')}
           </h2>
 
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-900">
-                  Require Authentication
+                  {t('settings.requireAuth')}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
                   {config.require_authentication?.description}
@@ -271,7 +273,7 @@ export default function Settings() {
 
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-900">Allow Recording</p>
+                <p className="text-sm font-medium text-gray-900">{t('settings.allowRecording')}</p>
                 <p className="text-xs text-gray-500 mt-1">
                   {config.allow_recording?.description}
                 </p>
@@ -295,7 +297,7 @@ export default function Settings() {
                 className="flex items-center w-full px-4 py-2 text-sm font-medium text-primary-700 hover:bg-primary-50 rounded-lg transition-colors"
               >
                 <Key className="w-5 h-5 mr-2" />
-                Change Password
+                {t('settings.changePassword')}
               </button>
             </div>
           </div>
@@ -305,20 +307,19 @@ export default function Settings() {
         <div className="card lg:col-span-2">
           <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
             <Network className="w-5 h-5 mr-2 text-primary-600" />
-            Network Settings
+            {t('settings.networkSettings')}
           </h2>
           <p className="text-sm text-gray-600 mb-4">
-            Configure the IP address used for QR codes and mobile device connections.
-            The system will use LAN addresses only (192.168.x.x, 10.x.x.x) and filter out loopback (127.x.x.x) and Docker internal IPs.
+            {t('settings.qrCodeHelper')}
           </p>
 
           {loadingNetwork ? (
-            <div className="text-center text-gray-500 py-4">Loading network interfaces...</div>
+            <div className="text-center text-gray-500 py-4">{t('settings.loadingInterfaces')}</div>
           ) : (
             <div className="space-y-6">
               {/* IP Detection Mode */}
               <div>
-                <label className="label">IP Address Detection</label>
+                <label className="label">{t('settings.ipDetection')}</label>
                 <div className="space-y-3">
                   <label className="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
                     <input
@@ -333,9 +334,9 @@ export default function Settings() {
                       className="text-primary-600"
                     />
                     <div className="flex-1">
-                      <div className="font-medium text-gray-900">Auto-detect (Recommended)</div>
+                      <div className="font-medium text-gray-900">{t('settings.autoDetect')}</div>
                       <div className="text-sm text-gray-600">
-                        Automatically use LAN (Ethernet) first, then WiFi
+                        {t('settings.autoDetectDesc')}
                       </div>
                     </div>
                   </label>
@@ -353,9 +354,9 @@ export default function Settings() {
                       className="text-primary-600"
                     />
                     <div className="flex-1">
-                      <div className="font-medium text-gray-900">Manual IP Address</div>
+                      <div className="font-medium text-gray-900">{t('settings.manualIp')}</div>
                       <div className="text-sm text-gray-600">
-                        Specify a custom IP address
+                        {t('settings.manualIpDesc')}
                       </div>
                     </div>
                   </label>
@@ -365,11 +366,11 @@ export default function Settings() {
               {/* Manual IP Input */}
               {networkConfig.server_ip_mode === 'manual' && (
                 <div>
-                  <label className="label">LAN IP Address</label>
+                  <label className="label">{t('settings.lanIp')}</label>
                   <input
                     type="text"
                     className="input"
-                    placeholder="192.168.1.100"
+                    placeholder={t('settings.ipPlaceholder')}
                     value={networkConfig.server_ip_address}
                     onChange={(e) => setNetworkConfig({
                       ...networkConfig,
@@ -377,19 +378,19 @@ export default function Settings() {
                     })}
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Local network IP address for devices on the same network
+                    {t('settings.lanIpHelper')}
                   </p>
                 </div>
               )}
 
               {/* Public IP */}
               <div>
-                <label className="label">Public IP (Optional)</label>
+                <label className="label">{t('settings.publicIp')}</label>
                 <div className="flex gap-2">
                   <input
                     type="text"
                     className="input flex-1"
-                    placeholder="123.45.67.89"
+                    placeholder={t('settings.publicIpPlaceholder')}
                     value={networkConfig.server_public_ip}
                     onChange={(e) => setNetworkConfig({
                       ...networkConfig,
@@ -405,28 +406,28 @@ export default function Settings() {
                     {detectingPublicIP ? (
                       <>
                         <RefreshCw className="w-4 h-4 animate-spin" />
-                        Detecting...
+                        {t('settings.detecting')}
                       </>
                     ) : (
                       <>
                         <Globe className="w-4 h-4" />
-                        Auto-Detect
+                        {t('settings.autoDetectButton')}
                       </>
                     )}
                   </button>
                 </div>
                 <p className="text-xs text-gray-500 mt-1">
-                  Your public IP address for remote/internet access. Click Auto-Detect to find it automatically.
+                  {t('settings.publicIpHelper')}
                 </p>
               </div>
 
               {/* Hostname/Domain */}
               <div>
-                <label className="label">Hostname / Domain (Optional)</label>
+                <label className="label">{t('settings.hostname')}</label>
                 <input
                   type="text"
                   className="input"
-                  placeholder="stream.example.com"
+                  placeholder={t('settings.hostnamePlaceholder')}
                   value={networkConfig.server_hostname}
                   onChange={(e) => setNetworkConfig({
                     ...networkConfig,
@@ -434,13 +435,13 @@ export default function Settings() {
                   })}
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Your domain name if you have one. This takes priority over public IP when set.
+                  {t('settings.hostnameHelper')}
                 </p>
               </div>
 
               {/* QR Code Mode */}
               <div>
-                <label className="label">QR Code Address Mode</label>
+                <label className="label">{t('settings.qrCodeMode')}</label>
                 <div className="space-y-2">
                   <label className="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
                     <input
@@ -455,9 +456,9 @@ export default function Settings() {
                       className="text-primary-600"
                     />
                     <div className="flex-1">
-                      <div className="font-medium text-gray-900">LAN IP (Local Network)</div>
+                      <div className="font-medium text-gray-900">{t('settings.lanMode')}</div>
                       <div className="text-sm text-gray-600">
-                        QR codes use local IP - for devices on same WiFi
+                        {t('settings.lanModeDesc')}
                       </div>
                     </div>
                   </label>
@@ -475,9 +476,9 @@ export default function Settings() {
                       className="text-primary-600"
                     />
                     <div className="flex-1">
-                      <div className="font-medium text-gray-900">Public IP/Domain (Internet)</div>
+                      <div className="font-medium text-gray-900">{t('settings.publicMode')}</div>
                       <div className="text-sm text-gray-600">
-                        QR codes use public IP - for remote access via internet
+                        {t('settings.publicModeDesc')}
                       </div>
                     </div>
                   </label>
@@ -495,7 +496,7 @@ export default function Settings() {
                   )}
                   {networkConfig.server_qr_mode === 'public' && !networkConfig.server_hostname && !networkConfig.server_public_ip && (
                     <span className="text-orange-600">
-                      ⚠️ No hostname or public IP set - will fallback to LAN IP
+                      {t('settings.noHostnameWarning')}
                     </span>
                   )}
                   {networkConfig.server_qr_mode === 'lan' && (
@@ -508,11 +509,11 @@ export default function Settings() {
 
               {/* Available Interfaces */}
               <div>
-                <label className="label">Available Network Interfaces</label>
+                <label className="label">{t('settings.networkInterfaces')}</label>
                 <div className="space-y-2">
                   {networkInterfaces.length === 0 ? (
                     <div className="text-sm text-gray-500 p-3 bg-gray-50 rounded">
-                      No network interfaces detected
+                      {t('settings.noInterfaces')}
                     </div>
                   ) : (
                     networkInterfaces.map((iface, index) => (
@@ -552,12 +553,12 @@ export default function Settings() {
                                 {iface.name}
                                 {iface.priority === 1 && iface.type !== 'docker' && (
                                   <span className="ml-2 text-xs px-2 py-0.5 bg-green-200 text-green-800 rounded">
-                                    Recommended
+                                    {t('settings.recommended')}
                                   </span>
                                 )}
                                 {iface.type === 'docker' && (
                                   <span className="ml-2 text-xs px-2 py-0.5 bg-orange-200 text-orange-800 rounded">
-                                    Internal Only
+                                    {t('settings.internalOnly')}
                                   </span>
                                 )}
                               </div>
@@ -568,7 +569,7 @@ export default function Settings() {
                               </div>
                               {iface.type === 'docker' && (
                                 <div className="text-xs text-orange-600 mt-1">
-                                  ⚠️ Docker container IP - not accessible from other devices
+                                  {t('settings.dockerWarning')}
                                 </div>
                               )}
                             </div>
@@ -584,7 +585,7 @@ export default function Settings() {
                               }}
                               className="text-xs px-3 py-1 bg-primary-600 text-white rounded hover:bg-primary-700"
                             >
-                              Use This IP
+                              {t('settings.useThisIp')}
                             </button>
                           )}
                         </div>
@@ -594,8 +595,8 @@ export default function Settings() {
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
                   {networkConfig.server_ip_mode === 'auto'
-                    ? 'The system will use the highest priority interface (Ethernet > WiFi)'
-                    : 'Click "Use This IP" to select an interface, or type a custom IP above'
+                    ? t('settings.priorityHelper')
+                    : t('settings.interfaceHelper')
                   }
                 </p>
               </div>
@@ -612,7 +613,7 @@ export default function Settings() {
           className="btn-primary flex items-center"
         >
           <Save className="w-5 h-5 mr-2" />
-          {saving ? 'Saving...' : 'Save Changes'}
+          {saving ? t('settings.saving') : t('settings.saveChanges')}
         </button>
       </div>
 

@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { configAPI, streamsAPI, sessionsAPI } from '../services/api';
 import { Radio, Activity, Server, AlertCircle, TrendingUp } from 'lucide-react';
 
 export default function Dashboard() {
+  const { t } = useTranslation();
   const [health, setHealth] = useState(null);
   const [stats, setStats] = useState(null);
   const [streams, setStreams] = useState([]);
@@ -39,7 +41,7 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Loading...</div>
+        <div className="text-gray-500">{t('dashboard.loading')}</div>
       </div>
     );
   }
@@ -65,8 +67,8 @@ export default function Dashboard() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600">System overview and statistics</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('dashboard.title')}</h1>
+        <p className="text-gray-600">{t('dashboard.subtitle')}</p>
       </div>
 
       {/* Status Alert */}
@@ -74,7 +76,7 @@ export default function Dashboard() {
         <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg flex items-start">
           <AlertCircle className="w-5 h-5 text-yellow-600 mr-3 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-medium text-yellow-800">System Warning</p>
+            <p className="text-sm font-medium text-yellow-800">{t('dashboard.systemWarning')}</p>
             <p className="text-sm text-yellow-700 mt-1">
               {health?.srs?.status !== 'healthy' && 'SRS streaming server is not responding. '}
             </p>
@@ -85,29 +87,29 @@ export default function Dashboard() {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
         <StatCard
-          title="Active Streams"
+          title={t('dashboard.activeStreams')}
           value={sessions?.length || 0}
           icon={Radio}
           color="bg-primary-600"
           link="/streams"
         />
         <StatCard
-          title="Total Streams"
+          title={t('dashboard.totalStreams')}
           value={streams?.length || 0}
           icon={TrendingUp}
           color="bg-green-600"
           link="/streams"
         />
         <StatCard
-          title="Active Sessions"
+          title={t('dashboard.activeSessions')}
           value={stats?.database?.activeSessions || 0}
           icon={Activity}
           color="bg-blue-600"
           link="/sessions"
         />
         <StatCard
-          title="System Status"
-          value={health?.status === 'healthy' ? 'Healthy' : 'Warning'}
+          title={t('dashboard.systemStatus')}
+          value={health?.status === 'healthy' ? t('dashboard.healthy') : t('dashboard.warning')}
           icon={Server}
           color={health?.status === 'healthy' ? 'bg-green-600' : 'bg-yellow-600'}
         />
@@ -117,14 +119,14 @@ export default function Dashboard() {
         {/* Active Streams */}
         <div className="card">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Active Streams</h2>
+            <h2 className="text-lg font-semibold text-gray-900">{t('dashboard.activeStreams')}</h2>
             <Link to="/streams" className="text-sm text-primary-600 hover:text-primary-700">
-              View All
+              {t('dashboard.viewAll')}
             </Link>
           </div>
 
           {sessions.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No active streams</p>
+            <p className="text-gray-500 text-center py-8">{t('dashboard.noActiveStreams')}</p>
           ) : (
             <div className="space-y-3">
               {sessions.slice(0, 5).map((session) => (
@@ -156,24 +158,24 @@ export default function Dashboard() {
 
         {/* System Health */}
         <div className="card">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">System Health</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('dashboard.systemHealth')}</h2>
 
           <div className="space-y-4">
             {/* Database */}
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <div>
-                <p className="text-sm font-medium text-gray-900">Database</p>
-                <p className="text-xs text-gray-500">SQLite</p>
+                <p className="text-sm font-medium text-gray-900">{t('dashboard.database')}</p>
+                <p className="text-xs text-gray-500">{t('dashboard.sqlite')}</p>
               </div>
               <span className="px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
-                Healthy
+                {t('dashboard.healthy')}
               </span>
             </div>
 
             {/* SRS Server */}
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <div>
-                <p className="text-sm font-medium text-gray-900">SRS Server</p>
+                <p className="text-sm font-medium text-gray-900">{t('dashboard.srsServer')}</p>
                 <p className="text-xs text-gray-500">
                   {health?.srs?.version?.data?.version || 'Unknown'}
                 </p>
@@ -185,18 +187,18 @@ export default function Dashboard() {
                     : 'bg-red-100 text-red-800'
                 }`}
               >
-                {health?.srs?.status === 'healthy' ? 'Healthy' : 'Unhealthy'}
+                {health?.srs?.status === 'healthy' ? t('dashboard.healthy') : t('dashboard.unhealthy')}
               </span>
             </div>
 
             {/* API Server */}
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <div>
-                <p className="text-sm font-medium text-gray-900">API Server</p>
-                <p className="text-xs text-gray-500">Node.js</p>
+                <p className="text-sm font-medium text-gray-900">{t('dashboard.apiServer')}</p>
+                <p className="text-xs text-gray-500">{t('dashboard.nodejs')}</p>
               </div>
               <span className="px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
-                Healthy
+                {t('dashboard.healthy')}
               </span>
             </div>
           </div>

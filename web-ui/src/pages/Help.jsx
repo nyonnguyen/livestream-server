@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   HelpCircle,
   Video,
@@ -14,6 +15,7 @@ import {
 } from 'lucide-react';
 
 export default function Help() {
+  const { t } = useTranslation();
   const [openSection, setOpenSection] = useState(null);
 
   const toggleSection = (section) => {
@@ -50,122 +52,118 @@ export default function Help() {
       <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg shadow-lg p-8 text-white mb-6">
         <div className="flex items-center gap-3 mb-2">
           <HelpCircle className="w-10 h-10" />
-          <h1 className="text-3xl font-bold">Help & User Guide</h1>
+          <h1 className="text-3xl font-bold">{t('help.pageTitle')}</h1>
         </div>
         <p className="text-indigo-100">
-          Learn how to use Nyon Livestream Server for low-latency streaming
+          {t('help.pageSubtitle')}
         </p>
       </div>
 
       {/* Quick Start */}
       <div className="card mb-6 bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
-        <h2 className="text-xl font-bold mb-3 text-green-900">Quick Start</h2>
+        <h2 className="text-xl font-bold mb-3 text-green-900">{t('help.quickStart.title')}</h2>
         <ol className="list-decimal list-inside space-y-2 text-gray-700">
-          <li className="font-medium">Create a stream in the Streams tab</li>
-          <li className="font-medium">Copy the RTMP or SRT URL</li>
-          <li className="font-medium">Configure your streaming software (OBS, etc.)</li>
-          <li className="font-medium">Start streaming and watch it live in the dashboard</li>
+          <li className="font-medium">{t('help.quickStart.step1')}</li>
+          <li className="font-medium">{t('help.quickStart.step2')}</li>
+          <li className="font-medium">{t('help.quickStart.step3')}</li>
+          <li className="font-medium">{t('help.quickStart.step4')}</li>
         </ol>
       </div>
 
       {/* Main Sections */}
-      <Section id="streams" title="Managing Streams" icon={Video}>
+      <Section id="streams" title={t('help.streams.title')} icon={Video}>
         <div>
-          <h3 className="font-semibold text-gray-900 mb-2">Creating a New Stream</h3>
+          <h3 className="font-semibold text-gray-900 mb-2">{t('help.streams.creating.title')}</h3>
           <ol className="list-decimal list-inside space-y-2 text-gray-700 ml-4">
-            <li>Navigate to the <strong>Streams</strong> tab</li>
-            <li>Click the <strong>"Add Stream"</strong> button</li>
-            <li>Fill in the stream details:
+            <li dangerouslySetInnerHTML={{ __html: t('help.streams.creating.step1') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.streams.creating.step2') }} />
+            <li>
+              <span dangerouslySetInnerHTML={{ __html: t('help.streams.creating.step3') }} />
               <ul className="list-disc list-inside ml-6 mt-2 space-y-1">
-                <li><strong>Stream Name:</strong> A descriptive name (e.g., "Drone Camera 1")</li>
-                <li><strong>Stream Key:</strong> Click "Generate" for a secure random key, enter a custom key, or leave blank to auto-generate</li>
-                <li><strong>Description:</strong> Optional notes about the stream</li>
-                <li><strong>Protocol:</strong> Choose RTMP, SRT, or RTMP + SRT</li>
-                <li><strong>Max Bitrate:</strong> Maximum allowed bitrate (recommended: 2500-5000 kbps for 1080p)</li>
+                <li dangerouslySetInnerHTML={{ __html: t('help.streams.creating.step3a') }} />
+                <li dangerouslySetInnerHTML={{ __html: t('help.streams.creating.step3b') }} />
+                <li dangerouslySetInnerHTML={{ __html: t('help.streams.creating.step3c') }} />
+                <li dangerouslySetInnerHTML={{ __html: t('help.streams.creating.step3d') }} />
+                <li dangerouslySetInnerHTML={{ __html: t('help.streams.creating.step3e') }} />
               </ul>
             </li>
-            <li>Click <strong>"Create"</strong></li>
+            <li dangerouslySetInnerHTML={{ __html: t('help.streams.creating.step4') }} />
           </ol>
         </div>
 
         <div className="border-t pt-4">
-          <h3 className="font-semibold text-gray-900 mb-2">Editing Streams</h3>
+          <h3 className="font-semibold text-gray-900 mb-2">{t('help.streams.editing.title')}</h3>
           <ul className="list-disc list-inside space-y-2 text-gray-700 ml-4">
-            <li>Click the <strong>pencil icon</strong> on any stream card</li>
-            <li>Modify any field including the stream key</li>
-            <li>
-              <strong>Warning:</strong> Changing the stream key will invalidate existing URLs.
-              Active streams will be disconnected.
-            </li>
+            <li dangerouslySetInnerHTML={{ __html: t('help.streams.editing.item1') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.streams.editing.item2') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.streams.editing.item3') }} />
           </ul>
         </div>
 
         <div className="border-t pt-4">
-          <h3 className="font-semibold text-gray-900 mb-2">Deleting Streams</h3>
+          <h3 className="font-semibold text-gray-900 mb-2">{t('help.streams.deleting.title')}</h3>
           <ul className="list-disc list-inside space-y-2 text-gray-700 ml-4">
-            <li>Click the <strong>trash icon</strong> on the stream card</li>
-            <li>Confirm deletion</li>
-            <li>All active sessions will be terminated</li>
+            <li dangerouslySetInnerHTML={{ __html: t('help.streams.deleting.item1') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.streams.deleting.item2') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.streams.deleting.item3') }} />
           </ul>
         </div>
 
         <div className="border-t pt-4">
-          <h3 className="font-semibold text-gray-900 mb-2">Regenerating Stream Keys</h3>
+          <h3 className="font-semibold text-gray-900 mb-2">{t('help.streams.regenerating.title')}</h3>
           <ul className="list-disc list-inside space-y-2 text-gray-700 ml-4">
-            <li>Click the <strong>key icon</strong> to generate a new random stream key</li>
-            <li>Useful if you suspect your stream key has been compromised</li>
-            <li>Update your streaming software with the new key</li>
+            <li dangerouslySetInnerHTML={{ __html: t('help.streams.regenerating.item1') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.streams.regenerating.item2') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.streams.regenerating.item3') }} />
           </ul>
         </div>
       </Section>
 
-      <Section id="publish" title="Publishing Streams" icon={Upload}>
+      <Section id="publish" title={t('help.publish.title')} icon={Upload}>
         <div>
-          <h3 className="font-semibold text-gray-900 mb-2">Getting Stream URLs</h3>
+          <h3 className="font-semibold text-gray-900 mb-2">{t('help.publish.gettingUrls.title')}</h3>
           <ol className="list-decimal list-inside space-y-2 text-gray-700 ml-4">
-            <li>Expand a stream by clicking on it</li>
-            <li>You'll see URLs for both <strong>LAN</strong> and <strong>Public</strong> access</li>
-            <li>Click the <Copy className="w-3 h-3 inline" /> copy icon to copy any URL</li>
+            <li dangerouslySetInnerHTML={{ __html: t('help.publish.gettingUrls.step1') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.publish.gettingUrls.step2') }} />
+            <li>
+              <span dangerouslySetInnerHTML={{ __html: t('help.publish.gettingUrls.step3') }} />
+            </li>
           </ol>
         </div>
 
         <div className="border-t pt-4">
-          <h3 className="font-semibold text-gray-900 mb-2">Using OBS Studio</h3>
+          <h3 className="font-semibold text-gray-900 mb-2">{t('help.publish.obs.title')}</h3>
           <ol className="list-decimal list-inside space-y-2 text-gray-700 ml-4">
-            <li>Open OBS Studio</li>
-            <li>Go to <strong>Settings → Stream</strong></li>
-            <li>Select <strong>"Custom"</strong> as service</li>
+            <li dangerouslySetInnerHTML={{ __html: t('help.publish.obs.step1') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.publish.obs.step2') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.publish.obs.step3') }} />
             <li>
-              <strong>For RTMP:</strong>
+              <span dangerouslySetInnerHTML={{ __html: t('help.publish.obs.step4') }} />
               <ul className="list-disc list-inside ml-6 mt-2 space-y-1">
-                <li><strong>Server:</strong> <code className="bg-gray-100 px-2 py-1 rounded">rtmp://YOUR_IP:1935/live</code></li>
-                <li><strong>Stream Key:</strong> Your stream key from the dashboard</li>
+                <li dangerouslySetInnerHTML={{ __html: t('help.publish.obs.step4a') }} />
+                <li dangerouslySetInnerHTML={{ __html: t('help.publish.obs.step4b') }} />
               </ul>
             </li>
             <li>
-              <strong>For SRT:</strong>
+              <span dangerouslySetInnerHTML={{ __html: t('help.publish.obs.step5') }} />
               <ul className="list-disc list-inside ml-6 mt-2 space-y-1">
-                <li><strong>Server:</strong> <code className="bg-gray-100 px-2 py-1 rounded">srt://YOUR_IP:10080?streamid=YOUR_KEY</code></li>
+                <li dangerouslySetInnerHTML={{ __html: t('help.publish.obs.step5a') }} />
               </ul>
             </li>
-            <li>Click <strong>"Start Streaming"</strong></li>
+            <li dangerouslySetInnerHTML={{ __html: t('help.publish.obs.step6') }} />
           </ol>
         </div>
 
         <div className="border-t pt-4">
-          <h3 className="font-semibold text-gray-900 mb-2">Using FFmpeg (Advanced)</h3>
+          <h3 className="font-semibold text-gray-900 mb-2">{t('help.publish.ffmpeg.title')}</h3>
           <div className="bg-gray-900 text-gray-100 rounded-lg p-4 overflow-x-auto">
-            <p className="text-sm text-gray-400 mb-2"># RTMP Example</p>
-            <code className="text-sm">
-              ffmpeg -i input.mp4 -c:v libx264 -preset ultrafast \<br />
-              &nbsp;&nbsp;-b:v 3000k -c:a aac -f flv \<br />
-              &nbsp;&nbsp;rtmp://YOUR_IP:1935/live/YOUR_KEY
+            <p className="text-sm text-gray-400 mb-2">{t('help.publish.ffmpeg.rtmpComment')}</p>
+            <code className="text-sm whitespace-pre-wrap">
+              {t('help.publish.ffmpeg.rtmpCommand')}
             </code>
-            <p className="text-sm text-gray-400 mt-4 mb-2"># SRT Example</p>
-            <code className="text-sm">
-              ffmpeg -i input.mp4 -c:v libx264 -preset ultrafast \<br />
-              &nbsp;&nbsp;-b:v 3000k -c:a aac -f mpegts \<br />
-              &nbsp;&nbsp;"srt://YOUR_IP:10080?streamid=YOUR_KEY"
+            <p className="text-sm text-gray-400 mt-4 mb-2">{t('help.publish.ffmpeg.srtComment')}</p>
+            <code className="text-sm whitespace-pre-wrap">
+              {t('help.publish.ffmpeg.srtCommand')}
             </code>
           </div>
         </div>
@@ -173,185 +171,179 @@ export default function Help() {
         <div className="border-t pt-4 bg-yellow-50 -mx-4 -mb-4 p-4 rounded-b-lg">
           <h3 className="font-semibold text-yellow-900 mb-2 flex items-center gap-2">
             <Settings className="w-4 h-4" />
-            Recommended Encoding Settings
+            {t('help.publish.encoding.title')}
           </h3>
           <ul className="list-disc list-inside space-y-1 text-gray-700 ml-4 text-sm">
-            <li><strong>Video Codec:</strong> H.264 (x264)</li>
-            <li><strong>Rate Control:</strong> CBR (Constant Bitrate)</li>
-            <li><strong>Keyframe Interval:</strong> 2 seconds</li>
-            <li><strong>Bitrate:</strong> 2500-5000 kbps for 1080p, 1500-3000 kbps for 720p</li>
-            <li><strong>Audio Codec:</strong> AAC, 128-160 kbps, 48kHz</li>
+            <li dangerouslySetInnerHTML={{ __html: t('help.publish.encoding.videoCodec') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.publish.encoding.rateControl') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.publish.encoding.keyframe') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.publish.encoding.bitrate') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.publish.encoding.audioCodec') }} />
           </ul>
         </div>
       </Section>
 
-      <Section id="watch" title="Watching Streams" icon={Eye}>
+      <Section id="watch" title={t('help.watch.title')} icon={Eye}>
         <div>
-          <h3 className="font-semibold text-gray-900 mb-2">In-Dashboard Playback</h3>
+          <h3 className="font-semibold text-gray-900 mb-2">{t('help.watch.dashboard.title')}</h3>
           <ol className="list-decimal list-inside space-y-2 text-gray-700 ml-4">
-            <li>When a stream is live, you'll see a <strong>green "LIVE"</strong> badge</li>
-            <li>Click the <Play className="w-3 h-3 inline" /> <strong>"Watch Live"</strong> button</li>
-            <li>The stream will expand and auto-scroll to the video player</li>
-            <li>Use video controls to play/pause, adjust volume, or fullscreen</li>
-            <li>Typical latency: <strong>0.5-1.5 seconds</strong></li>
+            <li dangerouslySetInnerHTML={{ __html: t('help.watch.dashboard.step1') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.watch.dashboard.step2') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.watch.dashboard.step3') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.watch.dashboard.step4') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.watch.dashboard.step5') }} />
           </ol>
         </div>
 
         <div className="border-t pt-4">
-          <h3 className="font-semibold text-gray-900 mb-2">Using VLC Media Player</h3>
+          <h3 className="font-semibold text-gray-900 mb-2">{t('help.watch.vlc.title')}</h3>
           <ol className="list-decimal list-inside space-y-2 text-gray-700 ml-4">
-            <li>Open VLC</li>
-            <li>Go to <strong>Media → Open Network Stream</strong></li>
-            <li>Copy the <strong>HTTP-FLV</strong> playback URL from dashboard</li>
-            <li>Paste it: <code className="bg-gray-100 px-2 py-1 rounded">http://YOUR_IP:8080/live/YOUR_KEY.flv</code></li>
-            <li>Click <strong>"Play"</strong></li>
-            <li>
-              <strong>Tip:</strong> In VLC settings, reduce network caching to 50-100ms for lower latency
-            </li>
+            <li dangerouslySetInnerHTML={{ __html: t('help.watch.vlc.step1') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.watch.vlc.step2') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.watch.vlc.step3') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.watch.vlc.step4') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.watch.vlc.step5') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.watch.vlc.step6') }} />
           </ol>
         </div>
 
         <div className="border-t pt-4">
-          <h3 className="font-semibold text-gray-900 mb-2">Using OBS for Restreaming</h3>
+          <h3 className="font-semibold text-gray-900 mb-2">{t('help.watch.obsRestream.title')}</h3>
           <ol className="list-decimal list-inside space-y-2 text-gray-700 ml-4">
-            <li>Add a new <strong>Media Source</strong></li>
-            <li>Enter the HTTP-FLV playback URL</li>
-            <li>Check <strong>"Restart playback when source becomes active"</strong></li>
-            <li>You can now restream to YouTube, Twitch, etc.</li>
+            <li dangerouslySetInnerHTML={{ __html: t('help.watch.obsRestream.step1') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.watch.obsRestream.step2') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.watch.obsRestream.step3') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.watch.obsRestream.step4') }} />
           </ol>
         </div>
       </Section>
 
-      <Section id="sessions" title="Monitoring Sessions" icon={Network}>
+      <Section id="sessions" title={t('help.sessions.title')} icon={Network}>
         <div>
-          <h3 className="font-semibold text-gray-900 mb-2">Active Sessions</h3>
-          <p className="text-gray-700 mb-3">
-            The <strong>Sessions</strong> tab shows all active streaming connections in real-time.
-          </p>
+          <h3 className="font-semibold text-gray-900 mb-2">{t('help.sessions.active.title')}</h3>
+          <p className="text-gray-700 mb-3" dangerouslySetInnerHTML={{ __html: t('help.sessions.active.description') }} />
           <ul className="list-disc list-inside space-y-2 text-gray-700 ml-4">
-            <li><strong>Stream Name:</strong> Which stream is being published</li>
-            <li><strong>Client ID:</strong> Unique identifier for the connection</li>
-            <li><strong>IP Address:</strong> Source IP of the publisher</li>
-            <li><strong>Protocol:</strong> RTMP or SRT</li>
-            <li><strong>Duration:</strong> How long the stream has been active</li>
-            <li><strong>Bitrate:</strong> Current streaming bitrate</li>
+            <li dangerouslySetInnerHTML={{ __html: t('help.sessions.active.streamName') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.sessions.active.clientId') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.sessions.active.ipAddress') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.sessions.active.protocol') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.sessions.active.duration') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.sessions.active.bitrate') }} />
           </ul>
         </div>
 
         <div className="border-t pt-4">
-          <h3 className="font-semibold text-gray-900 mb-2">Disconnecting Sessions</h3>
+          <h3 className="font-semibold text-gray-900 mb-2">{t('help.sessions.disconnecting.title')}</h3>
           <ul className="list-disc list-inside space-y-2 text-gray-700 ml-4">
-            <li>Click the <strong>red X icon</strong> next to any session</li>
-            <li>The publisher will be disconnected immediately</li>
-            <li>Useful for ending unwanted or unauthorized streams</li>
+            <li dangerouslySetInnerHTML={{ __html: t('help.sessions.disconnecting.item1') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.sessions.disconnecting.item2') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.sessions.disconnecting.item3') }} />
           </ul>
         </div>
 
         <div className="border-t pt-4">
-          <h3 className="font-semibold text-gray-900 mb-2">Dashboard Stats</h3>
-          <p className="text-gray-700">
-            The main <strong>Dashboard</strong> shows:
-          </p>
+          <h3 className="font-semibold text-gray-900 mb-2">{t('help.sessions.dashboardStats.title')}</h3>
+          <p className="text-gray-700" dangerouslySetInnerHTML={{ __html: t('help.sessions.dashboardStats.description') }} />
           <ul className="list-disc list-inside space-y-1 text-gray-700 ml-4 mt-2">
-            <li>Total active streams</li>
-            <li>System CPU usage</li>
-            <li>System memory usage</li>
-            <li>Server uptime</li>
+            <li>{t('help.sessions.dashboardStats.item1')}</li>
+            <li>{t('help.sessions.dashboardStats.item2')}</li>
+            <li>{t('help.sessions.dashboardStats.item3')}</li>
+            <li>{t('help.sessions.dashboardStats.item4')}</li>
           </ul>
         </div>
       </Section>
 
-      <Section id="settings" title="Settings & Configuration" icon={Settings}>
+      <Section id="settings" title={t('help.settings.title')} icon={Settings}>
         <div>
-          <h3 className="font-semibold text-gray-900 mb-2">Changing Password</h3>
+          <h3 className="font-semibold text-gray-900 mb-2">{t('help.settings.password.title')}</h3>
           <ol className="list-decimal list-inside space-y-2 text-gray-700 ml-4">
-            <li>Go to <strong>Settings</strong> tab</li>
-            <li>Enter your current password</li>
-            <li>Enter your new password</li>
-            <li>Confirm the new password</li>
-            <li>Click <strong>"Update Password"</strong></li>
-            <li>You'll be logged out and need to log in with the new password</li>
+            <li dangerouslySetInnerHTML={{ __html: t('help.settings.password.step1') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.settings.password.step2') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.settings.password.step3') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.settings.password.step4') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.settings.password.step5') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.settings.password.step6') }} />
           </ol>
         </div>
 
         <div className="border-t pt-4">
-          <h3 className="font-semibold text-gray-900 mb-2">Network Configuration</h3>
+          <h3 className="font-semibold text-gray-900 mb-2">{t('help.settings.network.title')}</h3>
           <ul className="list-disc list-inside space-y-2 text-gray-700 ml-4">
-            <li>The server automatically detects your <strong>LAN IP</strong></li>
-            <li>Configure <strong>Public IP/Domain</strong> for external access</li>
-            <li>All stream URLs will show both LAN and Public variants</li>
-            <li>Use LAN URLs for local network, Public URLs for internet access</li>
+            <li dangerouslySetInnerHTML={{ __html: t('help.settings.network.item1') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.settings.network.item2') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.settings.network.item3') }} />
+            <li dangerouslySetInnerHTML={{ __html: t('help.settings.network.item4') }} />
           </ul>
         </div>
 
         <div className="border-t pt-4">
-          <h3 className="font-semibold text-gray-900 mb-2">Stream Key Security</h3>
+          <h3 className="font-semibold text-gray-900 mb-2">{t('help.settings.security.title')}</h3>
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-blue-900 font-medium mb-2">Best Practices:</p>
+            <p className="text-blue-900 font-medium mb-2">{t('help.settings.security.bestPractices')}</p>
             <ul className="list-disc list-inside space-y-1 text-blue-800 text-sm ml-4">
-              <li>Never share stream keys publicly</li>
-              <li>Use auto-generated keys for better security</li>
-              <li>Regenerate keys if you suspect they've been compromised</li>
-              <li>Disable streams when not in use</li>
+              <li>{t('help.settings.security.item1')}</li>
+              <li>{t('help.settings.security.item2')}</li>
+              <li>{t('help.settings.security.item3')}</li>
+              <li>{t('help.settings.security.item4')}</li>
             </ul>
           </div>
         </div>
       </Section>
 
-      <Section id="troubleshooting" title="Troubleshooting" icon={HelpCircle}>
+      <Section id="troubleshooting" title={t('help.troubleshooting.title')} icon={HelpCircle}>
         <div>
-          <h3 className="font-semibold text-gray-900 mb-2">Stream Won't Connect</h3>
+          <h3 className="font-semibold text-gray-900 mb-2">{t('help.troubleshooting.connection.title')}</h3>
           <ul className="list-disc list-inside space-y-2 text-gray-700 ml-4">
-            <li>Verify the stream URL and key are correct</li>
-            <li>Check that the stream is <strong>Active</strong> (not disabled)</li>
-            <li>Ensure firewall allows connections on ports 1935 (RTMP) and 10080 (SRT)</li>
-            <li>Try using LAN IP instead of Public IP if on same network</li>
+            <li>{t('help.troubleshooting.connection.item1')}</li>
+            <li dangerouslySetInnerHTML={{ __html: t('help.troubleshooting.connection.item2') }} />
+            <li>{t('help.troubleshooting.connection.item3')}</li>
+            <li>{t('help.troubleshooting.connection.item4')}</li>
           </ul>
         </div>
 
         <div className="border-t pt-4">
-          <h3 className="font-semibold text-gray-900 mb-2">High Latency / Buffering</h3>
+          <h3 className="font-semibold text-gray-900 mb-2">{t('help.troubleshooting.latency.title')}</h3>
           <ul className="list-disc list-inside space-y-2 text-gray-700 ml-4">
-            <li>Reduce bitrate in your encoder (OBS, FFmpeg)</li>
-            <li>Use wired ethernet instead of WiFi if possible</li>
-            <li>Check network bandwidth is sufficient</li>
-            <li>SRT typically has lower latency than RTMP</li>
+            <li>{t('help.troubleshooting.latency.item1')}</li>
+            <li>{t('help.troubleshooting.latency.item2')}</li>
+            <li>{t('help.troubleshooting.latency.item3')}</li>
+            <li>{t('help.troubleshooting.latency.item4')}</li>
           </ul>
         </div>
 
         <div className="border-t pt-4">
-          <h3 className="font-semibold text-gray-900 mb-2">Video Player Shows Black Screen</h3>
+          <h3 className="font-semibold text-gray-900 mb-2">{t('help.troubleshooting.blackScreen.title')}</h3>
           <ul className="list-disc list-inside space-y-2 text-gray-700 ml-4">
-            <li>Hard refresh the page (Ctrl+Shift+R or Cmd+Shift+R)</li>
-            <li>Verify the stream is actually publishing (check Sessions tab)</li>
-            <li>Try opening the HTTP-FLV URL directly in VLC to test</li>
-            <li>Check browser console for errors (F12 → Console)</li>
+            <li>{t('help.troubleshooting.blackScreen.item1')}</li>
+            <li>{t('help.troubleshooting.blackScreen.item2')}</li>
+            <li>{t('help.troubleshooting.blackScreen.item3')}</li>
+            <li>{t('help.troubleshooting.blackScreen.item4')}</li>
           </ul>
         </div>
 
         <div className="border-t pt-4">
-          <h3 className="font-semibold text-gray-900 mb-2">Copy Buttons Not Working</h3>
+          <h3 className="font-semibold text-gray-900 mb-2">{t('help.troubleshooting.copyButtons.title')}</h3>
           <ul className="list-disc list-inside space-y-2 text-gray-700 ml-4">
-            <li>Modern browsers may restrict clipboard access on HTTP (not HTTPS)</li>
-            <li>The app has a fallback method that should work</li>
-            <li>If alerts show the URL, you can manually copy it</li>
-            <li>Alternatively, manually type/copy the URL from the display</li>
+            <li>{t('help.troubleshooting.copyButtons.item1')}</li>
+            <li>{t('help.troubleshooting.copyButtons.item2')}</li>
+            <li>{t('help.troubleshooting.copyButtons.item3')}</li>
+            <li>{t('help.troubleshooting.copyButtons.item4')}</li>
           </ul>
         </div>
       </Section>
 
       {/* Footer */}
       <div className="card bg-gradient-to-r from-indigo-50 to-purple-50">
-        <h2 className="text-xl font-bold mb-3 text-gray-900">Need More Help?</h2>
+        <h2 className="text-xl font-bold mb-3 text-gray-900">{t('help.footer.title')}</h2>
         <p className="text-gray-700 mb-4">
-          If you can't find the answer to your question, feel free to reach out:
+          {t('help.footer.description')}
         </p>
         <a
           href="mailto:nyonnguyen@gmail.com"
           className="btn-primary inline-flex items-center gap-2"
         >
           <HelpCircle className="w-4 h-4" />
-          Contact Support
+          {t('help.footer.contactSupport')}
         </a>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { streamsAPI, sessionsAPI } from '../services/api';
 import {
   Plus,
@@ -20,6 +21,7 @@ import QRCodeModal from '../components/QRCodeModal';
 import FlvPlayer from '../components/FlvPlayer';
 
 export default function Streams() {
+  const { t } = useTranslation();
   const [streams, setStreams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -109,7 +111,7 @@ export default function Streams() {
   };
 
   const handleDelete = async (id, name) => {
-    if (!confirm(`Are you sure you want to delete "${name}"?`)) {
+    if (!confirm(t('streams.deleteConfirm', { name }))) {
       return;
     }
 
@@ -117,7 +119,7 @@ export default function Streams() {
       await streamsAPI.delete(id);
       fetchStreams();
     } catch (error) {
-      alert('Error deleting stream: ' + error.response?.data?.error);
+      alert(t('streams.errorDeleting') + error.response?.data?.error);
     }
   };
 
@@ -126,21 +128,21 @@ export default function Streams() {
       await streamsAPI.toggle(id);
       fetchStreams();
     } catch (error) {
-      alert('Error toggling stream: ' + error.response?.data?.error);
+      alert(t('streams.errorToggling') + error.response?.data?.error);
     }
   };
 
   const handleRegenerateKey = async (id, name) => {
-    if (!confirm(`Regenerate stream key for "${name}"? The old key will stop working.`)) {
+    if (!confirm(t('streams.regenerateConfirm', { name }))) {
       return;
     }
 
     try {
       await streamsAPI.regenerateKey(id);
       fetchStreams();
-      alert('Stream key regenerated successfully!');
+      alert(t('streams.keyRegeneratedSuccess'));
     } catch (error) {
-      alert('Error regenerating key: ' + error.response?.data?.error);
+      alert(t('streams.errorRegeneratingKey') + error.response?.data?.error);
     }
   };
 
@@ -153,7 +155,7 @@ export default function Streams() {
         .then(() => {
           console.log('[Copy] Success via clipboard API');
           const preview = text.length > 50 ? text.substring(0, 50) + '...' : text;
-          alert(`✓ Copied to clipboard!\n\n${preview}`);
+          alert(t('streams.copiedSuccess', { preview }));
         })
         .catch(err => {
           console.error('[Copy] Clipboard API failed:', err);
@@ -180,13 +182,13 @@ export default function Streams() {
       console.log('[Copy] Fallback method result:', successful);
       if (successful) {
         const preview = text.length > 50 ? text.substring(0, 50) + '...' : text;
-        alert(`✓ Copied to clipboard!\n\n${preview}`);
+        alert(t('streams.copiedSuccess', { preview }));
       } else {
-        alert('❌ Failed to copy. Please copy manually:\n\n' + text);
+        alert(t('streams.copyFailed', { text }));
       }
     } catch (err) {
       console.error('[Copy] Fallback failed:', err);
-      alert('❌ Copy failed. Please copy manually:\n\n' + text);
+      alert(t('streams.copyFailed', { text }));
     } finally {
       document.body.removeChild(textarea);
     }
@@ -267,7 +269,7 @@ export default function Streams() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Loading...</div>
+        <div className="text-gray-500">{t('streams.loading')}</div>
       </div>
     );
   }
@@ -276,21 +278,21 @@ export default function Streams() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Streams</h1>
-          <p className="text-gray-600">Manage your livestream sources</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('streams.title')}</h1>
+          <p className="text-gray-600">{t('streams.subtitle')}</p>
         </div>
         <button onClick={handleCreate} className="btn-primary flex items-center">
           <Plus className="w-5 h-5 mr-2" />
-          Add Stream
+          {t('streams.addStream')}
         </button>
       </div>
 
       {streams.length === 0 ? (
         <div className="card text-center py-12">
           <Video className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500 mb-4">No streams configured</p>
+          <p className="text-gray-500 mb-4">{t('streams.noStreams')}</p>
           <button onClick={handleCreate} className="btn-primary">
-            Add Your First Stream
+            {t('streams.addFirstStream')}
           </button>
         </div>
       ) : (
@@ -323,7 +325,7 @@ export default function Streams() {
                     {isLive && (
                       <span className="px-2 py-1 text-xs font-bold bg-red-100 text-red-800 rounded-full animate-pulse flex items-center">
                         <span className="w-2 h-2 bg-red-600 rounded-full mr-1.5"></span>
-                        LIVE
+                        {t('streams.live')}
                       </span>
                     )}
 
@@ -334,11 +336,11 @@ export default function Streams() {
                           : 'bg-gray-100 text-gray-800'
                       }`}
                     >
-                      {stream.is_active ? 'Active' : 'Disabled'}
+                      {stream.is_active ? t('streams.active') : t('streams.disabled')}
                     </span>
 
                     <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full uppercase">
-                      {stream.protocol === 'both' ? 'RTMP + SRT' : stream.protocol}
+                      {stream.protocol === 'both' ? t('streams.rtmpSrt') : stream.protocol}
                     </span>
 
                     {isLive && !isPlaying && (
@@ -347,7 +349,7 @@ export default function Streams() {
                         className="ml-2 px-3 py-1 bg-purple-600 text-white text-xs font-medium rounded-lg hover:bg-purple-700 flex items-center gap-1"
                       >
                         <Play className="w-3 h-3" />
-                        Watch Live
+                        {t('streams.watchLive')}
                       </button>
                     )}
                   </div>
@@ -357,7 +359,7 @@ export default function Streams() {
                     <button
                       onClick={() => setQrCodeStream(stream)}
                       className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg"
-                      title="Show QR Code"
+                      title={t('streams.showQr')}
                     >
                       <QrCode className="w-5 h-5" />
                     </button>
@@ -368,28 +370,28 @@ export default function Streams() {
                           ? 'text-green-600 hover:bg-green-50'
                           : 'text-gray-600 hover:bg-gray-50'
                       }`}
-                      title={stream.is_active ? 'Disable' : 'Enable'}
+                      title={stream.is_active ? t('streams.disable') : t('streams.enable')}
                     >
                       <Power className="w-5 h-5" />
                     </button>
                     <button
                       onClick={() => handleEdit(stream)}
                       className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
-                      title="Edit"
+                      title={t('streams.edit')}
                     >
                       <Edit2 className="w-5 h-5" />
                     </button>
                     <button
                       onClick={() => handleRegenerateKey(stream.id, stream.name)}
                       className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg"
-                      title="Regenerate Key"
+                      title={t('streams.regenerateKey')}
                     >
                       <RefreshCw className="w-5 h-5" />
                     </button>
                     <button
                       onClick={() => handleDelete(stream.id, stream.name)}
                       className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-                      title="Delete"
+                      title={t('streams.delete')}
                     >
                       <Trash2 className="w-5 h-5" />
                     </button>
@@ -408,13 +410,13 @@ export default function Streams() {
                       <div className="mb-4">
                         <div className="flex items-center justify-between mb-2">
                           <label className="text-sm font-medium text-gray-900">
-                            Live Preview
+                            {t('streams.livePreview')}
                           </label>
                           <button
                             onClick={() => togglePlaying(stream.id)}
                             className="text-xs text-gray-600 hover:text-gray-900"
                           >
-                            Close Player
+                            {t('streams.closePlayer')}
                           </button>
                         </div>
                         <div className="bg-black rounded-lg overflow-hidden">
@@ -432,7 +434,7 @@ export default function Streams() {
                     {/* Stream Key */}
                     <div className="mb-4">
                       <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
-                        Stream Key
+                        {t('streams.streamKey')}
                       </label>
                       <div className="flex items-center mt-1">
                         <code className="flex-1 px-3 py-2 bg-gray-50 rounded-lg text-sm font-mono">
@@ -443,7 +445,7 @@ export default function Streams() {
                         <button
                           onClick={() => toggleShowKey(stream.id)}
                           className="ml-2 p-2 text-gray-600 hover:text-gray-900"
-                          title={showKeys[stream.id] ? 'Hide' : 'Show'}
+                          title={showKeys[stream.id] ? t('streams.hide') : t('streams.show')}
                         >
                           {showKeys[stream.id] ? (
                             <EyeOff className="w-5 h-5" />
@@ -454,7 +456,7 @@ export default function Streams() {
                         <button
                           onClick={() => copyToClipboard(stream.stream_key)}
                           className="ml-1 p-2 text-gray-600 hover:text-gray-900"
-                          title="Copy"
+                          title={t('streams.copy')}
                         >
                           <Copy className="w-5 h-5" />
                         </button>
@@ -466,7 +468,7 @@ export default function Streams() {
                       {/* Publish URLs Column */}
                       <div>
                         <label className="text-sm font-semibold text-gray-900 mb-3 block">
-                          📤 Publish URLs (For Streaming Apps)
+                          {t('streams.publishUrls')}
                         </label>
 
                         <div className="space-y-4">
@@ -474,16 +476,16 @@ export default function Streams() {
                           <div>
                             <div className="flex items-center mb-2">
                               <span className="px-2 py-0.5 bg-purple-100 text-purple-800 text-xs rounded font-medium mr-2">
-                                RTMP
+                                {t('streams.rtmp')}
                               </span>
-                              <span className="text-xs text-gray-500">(OBS, Streamlabs, etc.)</span>
+                              <span className="text-xs text-gray-500">{t('streams.rtmpNote')}</span>
                             </div>
 
                             {/* LAN RTMP */}
                             <div className="mb-2">
                               <div className="flex items-center mb-1">
                                 <span className="px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full font-medium">
-                                  🏠 LAN
+                                  {t('streams.lan')}
                                 </span>
                               </div>
                               <div className="flex items-center">
@@ -493,7 +495,7 @@ export default function Streams() {
                                 <button
                                   onClick={() => copyToClipboard(getRtmpUrl(stream.stream_key, serverIp))}
                                   className="ml-1 p-1.5 text-gray-600 hover:text-gray-900"
-                                  title="Copy"
+                                  title={t('streams.copy')}
                                 >
                                   <Copy className="w-4 h-4" />
                                 </button>
@@ -505,7 +507,7 @@ export default function Streams() {
                               <div>
                                 <div className="flex items-center mb-1">
                                   <span className="px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full font-medium">
-                                    🌐 Public
+                                    {t('streams.public')}
                                   </span>
                                 </div>
                                 <div className="flex items-center">
@@ -515,7 +517,7 @@ export default function Streams() {
                                   <button
                                     onClick={() => copyToClipboard(getRtmpUrl(stream.stream_key, getPublicAddress()))}
                                     className="ml-1 p-1.5 text-gray-600 hover:text-gray-900"
-                                    title="Copy"
+                                    title={t('streams.copy')}
                                   >
                                     <Copy className="w-4 h-4" />
                                   </button>
@@ -528,16 +530,16 @@ export default function Streams() {
                           <div>
                             <div className="flex items-center mb-2">
                               <span className="px-2 py-0.5 bg-indigo-100 text-indigo-800 text-xs rounded font-medium mr-2">
-                                SRT
+                                {t('streams.srt')}
                               </span>
-                              <span className="text-xs text-gray-500">(Low latency, better for unstable networks)</span>
+                              <span className="text-xs text-gray-500">{t('streams.srtNote')}</span>
                             </div>
 
                             {/* LAN SRT */}
                             <div className="mb-2">
                               <div className="flex items-center mb-1">
                                 <span className="px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full font-medium">
-                                  🏠 LAN
+                                  {t('streams.lan')}
                                 </span>
                               </div>
                               <div className="flex items-center">
@@ -547,7 +549,7 @@ export default function Streams() {
                                 <button
                                   onClick={() => copyToClipboard(getSrtPublishUrl(stream.stream_key, serverIp))}
                                   className="ml-1 p-1.5 text-gray-600 hover:text-gray-900"
-                                  title="Copy"
+                                  title={t('streams.copy')}
                                 >
                                   <Copy className="w-4 h-4" />
                                 </button>
@@ -559,7 +561,7 @@ export default function Streams() {
                               <div>
                                 <div className="flex items-center mb-1">
                                   <span className="px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full font-medium">
-                                    🌐 Public
+                                    {t('streams.public')}
                                   </span>
                                 </div>
                                 <div className="flex items-center">
@@ -569,7 +571,7 @@ export default function Streams() {
                                   <button
                                     onClick={() => copyToClipboard(getSrtPublishUrl(stream.stream_key, getPublicAddress()))}
                                     className="ml-1 p-1.5 text-gray-600 hover:text-gray-900"
-                                    title="Copy"
+                                    title={t('streams.copy')}
                                   >
                                     <Copy className="w-4 h-4" />
                                   </button>
@@ -583,7 +585,7 @@ export default function Streams() {
                       {/* Playback URLs Column */}
                       <div>
                         <label className="text-sm font-semibold text-gray-900 mb-3 block">
-                          📥 Playback URLs (For Viewing)
+                          {t('streams.playbackUrls')}
                         </label>
 
                         <div className="space-y-4">
@@ -591,16 +593,16 @@ export default function Streams() {
                           <div>
                             <div className="flex items-center mb-2">
                               <span className="px-2 py-0.5 bg-orange-100 text-orange-800 text-xs rounded font-medium mr-2">
-                                HTTP-FLV
+                                {t('streams.httpFlv')}
                               </span>
-                              <span className="text-xs text-gray-500">(~1s latency, VLC/OBS/Browser)</span>
+                              <span className="text-xs text-gray-500">{t('streams.httpFlvNote')}</span>
                             </div>
 
                             {/* LAN HTTP-FLV */}
                             <div className="mb-2">
                               <div className="flex items-center mb-1">
                                 <span className="px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full font-medium">
-                                  🏠 LAN
+                                  {t('streams.lan')}
                                 </span>
                               </div>
                               <div className="flex items-center">
@@ -610,7 +612,7 @@ export default function Streams() {
                                 <button
                                   onClick={() => copyToClipboard(getPlaybackUrl(stream.stream_key, serverIp))}
                                   className="ml-1 p-1.5 text-gray-600 hover:text-gray-900"
-                                  title="Copy"
+                                  title={t('streams.copy')}
                                 >
                                   <Copy className="w-4 h-4" />
                                 </button>
@@ -622,7 +624,7 @@ export default function Streams() {
                               <div>
                                 <div className="flex items-center mb-1">
                                   <span className="px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full font-medium">
-                                    🌐 Public
+                                    {t('streams.public')}
                                   </span>
                                 </div>
                                 <div className="flex items-center">
@@ -632,7 +634,7 @@ export default function Streams() {
                                   <button
                                     onClick={() => copyToClipboard(getPlaybackUrl(stream.stream_key, getPublicAddress()))}
                                     className="ml-1 p-1.5 text-gray-600 hover:text-gray-900"
-                                    title="Copy"
+                                    title={t('streams.copy')}
                                   >
                                     <Copy className="w-4 h-4" />
                                   </button>
@@ -645,16 +647,16 @@ export default function Streams() {
                           <div>
                             <div className="flex items-center mb-2">
                               <span className="px-2 py-0.5 bg-indigo-100 text-indigo-800 text-xs rounded font-medium mr-2">
-                                SRT
+                                {t('streams.srt')}
                               </span>
-                              <span className="text-xs text-gray-500">(~0.5s latency, VLC recommended)</span>
+                              <span className="text-xs text-gray-500">{t('streams.srtPlayNote')}</span>
                             </div>
 
                             {/* LAN SRT */}
                             <div className="mb-2">
                               <div className="flex items-center mb-1">
                                 <span className="px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full font-medium">
-                                  🏠 LAN
+                                  {t('streams.lan')}
                                 </span>
                               </div>
                               <div className="flex items-center">
@@ -664,7 +666,7 @@ export default function Streams() {
                                 <button
                                   onClick={() => copyToClipboard(getSrtPlayUrl(stream.stream_key, serverIp))}
                                   className="ml-1 p-1.5 text-gray-600 hover:text-gray-900"
-                                  title="Copy"
+                                  title={t('streams.copy')}
                                 >
                                   <Copy className="w-4 h-4" />
                                 </button>
@@ -676,7 +678,7 @@ export default function Streams() {
                               <div>
                                 <div className="flex items-center mb-1">
                                   <span className="px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full font-medium">
-                                    🌐 Public
+                                    {t('streams.public')}
                                   </span>
                                 </div>
                                 <div className="flex items-center">
@@ -686,7 +688,7 @@ export default function Streams() {
                                   <button
                                     onClick={() => copyToClipboard(getSrtPlayUrl(stream.stream_key, getPublicAddress()))}
                                     className="ml-1 p-1.5 text-gray-600 hover:text-gray-900"
-                                    title="Copy"
+                                    title={t('streams.copy')}
                                   >
                                     <Copy className="w-4 h-4" />
                                   </button>
@@ -699,16 +701,16 @@ export default function Streams() {
                           <div>
                             <div className="flex items-center mb-2">
                               <span className="px-2 py-0.5 bg-purple-100 text-purple-800 text-xs rounded font-medium mr-2">
-                                RTMP
+                                {t('streams.rtmp')}
                               </span>
-                              <span className="text-xs text-gray-500">(~1-2s latency, VLC/OBS)</span>
+                              <span className="text-xs text-gray-500">{t('streams.publicPlayNote')}</span>
                             </div>
 
                             {/* LAN RTMP */}
                             <div className="mb-2">
                               <div className="flex items-center mb-1">
                                 <span className="px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full font-medium">
-                                  🏠 LAN
+                                  {t('streams.lan')}
                                 </span>
                               </div>
                               <div className="flex items-center">
@@ -718,7 +720,7 @@ export default function Streams() {
                                 <button
                                   onClick={() => copyToClipboard(getRtmpUrl(stream.stream_key, serverIp))}
                                   className="ml-1 p-1.5 text-gray-600 hover:text-gray-900"
-                                  title="Copy"
+                                  title={t('streams.copy')}
                                 >
                                   <Copy className="w-4 h-4" />
                                 </button>
@@ -730,7 +732,7 @@ export default function Streams() {
                               <div>
                                 <div className="flex items-center mb-1">
                                   <span className="px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full font-medium">
-                                    🌐 Public
+                                    {t('streams.public')}
                                   </span>
                                 </div>
                                 <div className="flex items-center">
@@ -740,7 +742,7 @@ export default function Streams() {
                                   <button
                                     onClick={() => copyToClipboard(getRtmpUrl(stream.stream_key, getPublicAddress()))}
                                     className="ml-1 p-1.5 text-gray-600 hover:text-gray-900"
-                                    title="Copy"
+                                    title={t('streams.copy')}
                                   >
                                     <Copy className="w-4 h-4" />
                                   </button>

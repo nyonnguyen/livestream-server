@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import {
   Video,
@@ -14,8 +15,10 @@ import {
   Info,
 } from 'lucide-react';
 import ChangePasswordModal from './ChangePasswordModal';
+import LanguageSwitcher from './LanguageSwitcher';
 
 export default function Layout({ children }) {
+  const { t } = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const { user, logout } = useAuth();
@@ -35,12 +38,12 @@ export default function Layout({ children }) {
   };
 
   const navigation = [
-    { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-    { name: 'Streams', href: '/streams', icon: Radio },
-    { name: 'Sessions', href: '/sessions', icon: Activity },
-    { name: 'Settings', href: '/settings', icon: Settings },
-    { name: 'Help', href: '/help', icon: HelpCircle },
-    { name: 'About', href: '/about', icon: Info },
+    { name: t('nav.dashboard'), href: '/', icon: LayoutDashboard },
+    { name: t('nav.streams'), href: '/streams', icon: Radio },
+    { name: t('nav.sessions'), href: '/sessions', icon: Activity },
+    { name: t('nav.settings'), href: '/settings', icon: Settings },
+    { name: t('nav.help'), href: '/help', icon: HelpCircle },
+    { name: t('nav.about'), href: '/about', icon: Info },
   ];
 
   return (
@@ -61,9 +64,9 @@ export default function Layout({ children }) {
       >
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
           <div className="flex items-center">
-            <img src="/logo.svg" alt="Nyon" className="w-8 h-8" />
+            <img src="/logo.svg" alt={t('nav.appName')} className="w-8 h-8" />
             <span className="ml-2 text-lg font-semibold text-gray-900">
-              Nyon Stream
+              {t('nav.appName')}
             </span>
           </div>
           <button
@@ -100,7 +103,7 @@ export default function Layout({ children }) {
           <div className="flex items-center mb-4">
             <div className="flex-1">
               <p className="text-sm font-medium text-gray-900">{user?.username}</p>
-              <p className="text-xs text-gray-500">{user?.email || 'Administrator'}</p>
+              <p className="text-xs text-gray-500">{user?.email || t('nav.administrator')}</p>
             </div>
           </div>
           <button
@@ -108,7 +111,7 @@ export default function Layout({ children }) {
             className="flex items-center w-full px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50 rounded-lg transition-colors"
           >
             <LogOut className="w-5 h-5 mr-3" />
-            Sign Out
+            {t('nav.signOut')}
           </button>
         </div>
       </div>
@@ -125,6 +128,7 @@ export default function Layout({ children }) {
               <Menu className="w-6 h-6 text-gray-600" />
             </button>
             <div className="flex-1" />
+            <LanguageSwitcher />
           </div>
         </div>
 

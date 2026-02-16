@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { sessionsAPI } from '../services/api';
 import { Activity, StopCircle, Clock, TrendingUp } from 'lucide-react';
 
 export default function Sessions() {
+  const { t } = useTranslation();
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -24,7 +26,7 @@ export default function Sessions() {
   };
 
   const handleDisconnect = async (id, streamName) => {
-    if (!confirm(`Disconnect stream "${streamName}"?`)) {
+    if (!confirm(t('sessions.disconnectConfirm', { streamName }))) {
       return;
     }
 
@@ -32,7 +34,7 @@ export default function Sessions() {
       await sessionsAPI.disconnect(id);
       fetchSessions();
     } catch (error) {
-      alert('Error disconnecting session: ' + error.response?.data?.error);
+      alert(t('sessions.errorDisconnecting') + error.response?.data?.error);
     }
   };
 
@@ -65,7 +67,7 @@ export default function Sessions() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Loading...</div>
+        <div className="text-gray-500">{t('sessions.loading')}</div>
       </div>
     );
   }
@@ -73,8 +75,8 @@ export default function Sessions() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Active Sessions</h1>
-        <p className="text-gray-600">Monitor live streaming sessions</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('sessions.title')}</h1>
+        <p className="text-gray-600">{t('sessions.subtitle')}</p>
       </div>
 
       {/* Stats */}
@@ -82,7 +84,7 @@ export default function Sessions() {
         <div className="card">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 mb-1">Active Sessions</p>
+              <p className="text-sm text-gray-600 mb-1">{t('sessions.activeSessions')}</p>
               <p className="text-3xl font-bold text-gray-900">{sessions.length}</p>
             </div>
             <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center">
@@ -94,7 +96,7 @@ export default function Sessions() {
         <div className="card">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 mb-1">Total Bandwidth</p>
+              <p className="text-sm text-gray-600 mb-1">{t('sessions.totalBandwidth')}</p>
               <p className="text-3xl font-bold text-gray-900">
                 {formatBitrate(
                   sessions.reduce((sum, s) => sum + (s.live_data?.kbps?.recv || 0), 0)
@@ -110,7 +112,7 @@ export default function Sessions() {
         <div className="card">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 mb-1">Avg. Duration</p>
+              <p className="text-sm text-gray-600 mb-1">{t('sessions.avgDuration')}</p>
               <p className="text-3xl font-bold text-gray-900">
                 {sessions.length > 0
                   ? Math.floor(
@@ -136,7 +138,7 @@ export default function Sessions() {
       {sessions.length === 0 ? (
         <div className="card text-center py-12">
           <Activity className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500">No active sessions</p>
+          <p className="text-gray-500">{t('sessions.noActiveSessions')}</p>
         </div>
       ) : (
         <div className="card overflow-x-auto">
@@ -144,25 +146,25 @@ export default function Sessions() {
             <thead>
               <tr className="border-b border-gray-200">
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
-                  Stream
+                  {t('sessions.stream')}
                 </th>
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
-                  IP Address
+                  {t('sessions.ipAddress')}
                 </th>
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
-                  Protocol
+                  {t('sessions.protocol')}
                 </th>
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
-                  Duration
+                  {t('sessions.duration')}
                 </th>
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
-                  Bitrate
+                  {t('sessions.bitrate')}
                 </th>
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
-                  Resolution
+                  {t('sessions.resolution')}
                 </th>
                 <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">
-                  Actions
+                  {t('sessions.actions')}
                 </th>
               </tr>
             </thead>
@@ -174,7 +176,7 @@ export default function Sessions() {
                       <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse" />
                       <div>
                         <div className="font-medium text-gray-900">
-                          {session.stream_name || 'Unknown Stream'}
+                          {session.stream_name || t('sessions.unknownStream')}
                         </div>
                         {session.live_data?.video?.codec && (
                           <div className="text-xs text-gray-500">
@@ -186,7 +188,7 @@ export default function Sessions() {
                     </div>
                   </td>
                   <td className="py-3 px-4 text-sm text-gray-600">
-                    {session.ip_address || 'N/A'}
+                    {session.ip_address || t('sessions.na')}
                   </td>
                   <td className="py-3 px-4">
                     <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded uppercase">
@@ -199,7 +201,7 @@ export default function Sessions() {
                   <td className="py-3 px-4">
                     <div className="text-sm text-gray-900 font-medium">
                       {session.live_data?.kbps?.recv ? formatBitrate(session.live_data.kbps.recv) : (
-                        <span className="text-gray-400">Connecting...</span>
+                        <span className="text-gray-400">{t('sessions.connecting')}</span>
                       )}
                     </div>
                     {session.live_data?.kbps?.send > 0 && (
@@ -230,7 +232,7 @@ export default function Sessions() {
                       className="inline-flex items-center px-3 py-1 bg-red-50 text-red-700 text-sm font-medium rounded-lg hover:bg-red-100"
                     >
                       <StopCircle className="w-4 h-4 mr-1" />
-                      Disconnect
+                      {t('sessions.disconnect')}
                     </button>
                   </td>
                 </tr>
