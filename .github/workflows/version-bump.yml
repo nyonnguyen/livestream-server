@@ -36,8 +36,11 @@ jobs:
           echo "Branch: $BRANCH_NAME"
 
           # Detect bump type from branch name or PR title
+          # Priority order: breaking > fix > feature > default(patch)
           if echo "$BRANCH_NAME $PR_TITLE" | grep -qiE "(breaking|major)"; then
             BUMP_TYPE="major"
+          elif echo "$BRANCH_NAME $PR_TITLE" | grep -qiE "(fix|bugfix|hotfix)"; then
+            BUMP_TYPE="patch"
           elif echo "$BRANCH_NAME $PR_TITLE" | grep -qiE "(feature|feat|add)"; then
             BUMP_TYPE="minor"
           else

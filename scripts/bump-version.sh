@@ -68,26 +68,33 @@ if [ "$BUMP_TYPE" = "auto" ]; then
         COMMITS=$(git log --pretty=format:"%s" -10)
     fi
 
+    # Priority order: breaking > fix > feature > default(patch)
+
     # Detect breaking changes (major bump)
     if echo "$COMMITS" | grep -qiE "^(BREAKING|break:)"; then
         BUMP_TYPE="major"
         print_info "Detected breaking changes → MAJOR bump"
-
-    # Detect new features (minor bump)
-    elif echo "$COMMITS" | grep -qiE "^(feat|feature|add:)"; then
-        BUMP_TYPE="minor"
-        print_info "Detected new features → MINOR bump"
-
-    # Detect from branch name
-    elif echo "$BRANCH" | grep -qiE "(feature|feat)/"; then
-        BUMP_TYPE="minor"
-        print_info "Feature branch detected → MINOR bump"
-
     elif echo "$BRANCH" | grep -qiE "(breaking|major)/"; then
         BUMP_TYPE="major"
         print_info "Breaking change branch detected → MAJOR bump"
 
-    # Default to patch for fixes
+    # Detect bug fixes (patch bump) - check BEFORE feature detection
+    elif echo "$COMMITS" | grep -qiE "^(fix|bugfix|hotfix):"; then
+        BUMP_TYPE="patch"
+        print_info "Detected bug fixes → PATCH bump"
+    elif echo "$BRANCH" | grep -qiE "(fix|bugfix|hotfix)/"; then
+        BUMP_TYPE="patch"
+        print_info "Fix branch detected → PATCH bump"
+
+    # Detect new features (minor bump)
+    elif echo "$COMMITS" | grep -qiE "^(feat|feature|add):"; then
+        BUMP_TYPE="minor"
+        print_info "Detected new features → MINOR bump"
+    elif echo "$BRANCH" | grep -qiE "(feature|feat)/"; then
+        BUMP_TYPE="minor"
+        print_info "Feature branch detected → MINOR bump"
+
+    # Default to patch for everything else
     else
         BUMP_TYPE="patch"
         print_info "No major/minor patterns detected → PATCH bump"
