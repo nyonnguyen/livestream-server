@@ -219,7 +219,7 @@ generate_secrets() {
     print_step "Generating secure secrets..."
 
     JWT_SECRET=$(openssl rand -hex 32)
-    ADMIN_PASSWORD=$(openssl rand -base64 12 | tr -d "=+/" | cut -c1-12)
+    ADMIN_PASSWORD="admin123"  # Default password, user should change after first login
     STREAM_KEY_1=$(openssl rand -hex 16)
     STREAM_KEY_2=$(openssl rand -hex 16)
     STREAM_KEY_3=$(openssl rand -hex 16)
@@ -271,7 +271,7 @@ EOF
 
     print_success "Environment configured"
     print_info "Server IP: $SERVER_IP"
-    print_info "Admin password: $ADMIN_PASSWORD (Save this!)"
+    print_info "Admin password: $ADMIN_PASSWORD (default - change after first login)"
 }
 
 # Pull or build Docker images
@@ -389,7 +389,7 @@ display_success() {
     echo -e "${BLUE}🔑 Admin Username:${NC} admin"
     echo -e "${BLUE}🔒 Admin Password:${NC} $ADMIN_PASSWORD"
     echo ""
-    echo -e "${YELLOW}⚠️  IMPORTANT: Save your admin password!${NC}"
+    echo -e "${YELLOW}⚠️  IMPORTANT: Change your admin password after first login!${NC}"
     echo ""
     echo -e "${GREEN}Next Steps:${NC}"
     echo "1. Access web interface: http://$SERVER_IP"
