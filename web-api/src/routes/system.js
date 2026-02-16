@@ -10,33 +10,33 @@ const { asyncHandler } = require('../middleware/errorHandler');
  * POST /api/system/update
  * Trigger system update (git pull + docker compose)
  * Requires authentication
+ * Executes on HOST system via nsenter
  */
 router.post('/update', authenticate, asyncHandler(async (req, res) => {
   const updateLogPath = '/tmp/livestream-update.log';
-  const updateScriptPath = path.join(__dirname, '../../../scripts/update.sh');
 
-  // Check if update script exists
-  if (!fs.existsSync(updateScriptPath)) {
-    return res.status(500).json({
+  // Update script path on HOST filesystem (not container)
+  const hostUpdateScriptPath = '/opt/livestream-server/scripts/update.sh';
+
+  try {
+    // Use nsenter to execute update script on HOST system
+    // This enters the host's namespaces (PID 1 = host init process)
+    const command = `nsenter --target 1 --mount --uts --ipc --net --pid bash ${hostUpdateScriptPath} > ${updateLogPath} 2>&1 &`;
+
+    execSync(command);
+
+    res.json({
+      success: true,
+      message: 'Update started in background',
+      logPath: updateLogPath
+    });
+  } catch (error) {
+    console.error('Failed to start update:', error);
+    res.status(500).json({
       success: false,
-      error: 'Update script not found'
+      error: 'Failed to start update: ' + error.message
     });
   }
-
-  // Clear previous log
-  if (fs.existsSync(updateLogPath)) {
-    fs.unlinkSync(updateLogPath);
-  }
-
-  // Run update script in background
-  const command = `bash ${updateScriptPath} > ${updateLogPath} 2>&1 &`;
-  execSync(command);
-
-  res.json({
-    success: true,
-    message: 'Update started in background',
-    logPath: updateLogPath
-  });
 }));
 
 /**
