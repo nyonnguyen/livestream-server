@@ -175,40 +175,28 @@ This will:
 
 ## Uninstallation
 
-### Remove Everything
+To cleanly uninstall the livestream server, use the uninstall script:
 
 ```bash
-# Stop and disable service
-sudo systemctl stop livestream-server
-sudo systemctl disable livestream-server
-
-# Remove systemd service
-sudo rm /etc/systemd/system/livestream-server.service
-sudo systemctl daemon-reload
-
-# Stop and remove Docker containers
+# Standard uninstall (removes app, keeps Docker)
 cd /opt/livestream-server
-docker-compose down -v
+./uninstall.sh
 
-# Remove application directory
-sudo rm -rf /opt/livestream-server
+# Complete removal (removes app + Docker)
+./uninstall.sh --full
 
-# Optional: Remove Docker
-sudo apt-get remove docker docker-compose
-sudo apt-get autoremove
+# Keep your data (backs up database and config)
+./uninstall.sh --keep-data
 ```
 
-### Remove Docker Images
+**For detailed uninstallation instructions and scenarios, see:** [UNINSTALL.md](UNINSTALL.md)
 
-```bash
-# List images
-docker images | grep livestream
-
-# Remove specific images
-docker rmi ghcr.io/nyonnguyen/livestream-server/web-api:latest
-docker rmi ghcr.io/nyonnguyen/livestream-server/web-ui:latest
-docker rmi ossrs/srs:5
-```
+The uninstall guide covers:
+- Step-by-step cleanup and reinstall procedures
+- How to preserve your data during reinstallation
+- Restoring from backups
+- Troubleshooting uninstallation issues
+- Complete system reset options
 
 ---
 
@@ -495,8 +483,9 @@ docker-compose logs --tail 100 -f
 ## Support
 
 **Documentation:**
-- [README.md](README.md) - Project overview
+- [README.md](../README.md) - Project overview
 - [DEPLOYMENT.md](DEPLOYMENT.md) - Manual deployment
+- [UNINSTALL.md](UNINSTALL.md) - Uninstallation guide
 - [CI-CD.md](CI-CD.md) - CI/CD pipeline
 - [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - Common issues
 

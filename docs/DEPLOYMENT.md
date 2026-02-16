@@ -674,7 +674,20 @@ docker system prune -f
 
 ## Uninstallation
 
-### Remove Services
+For automated uninstallation using the uninstall script:
+
+```bash
+cd /opt/livestream-server
+./uninstall.sh
+```
+
+**See [UNINSTALL.md](UNINSTALL.md) for complete uninstallation guide.**
+
+### Manual Uninstallation (Alternative)
+
+If you prefer manual cleanup:
+
+#### Remove Services
 
 ```bash
 # Stop and remove containers
@@ -687,7 +700,7 @@ docker rmi $(docker images -q livestream*)
 docker volume prune
 ```
 
-### Remove Project
+#### Remove Project
 
 ```bash
 # Remove project directory
@@ -695,7 +708,7 @@ cd ~
 rm -rf projects/livestream-server
 ```
 
-### Remove Docker (Optional)
+#### Remove Docker (Optional)
 
 ```bash
 # Remove Docker
