@@ -144,6 +144,55 @@ run_compose() {
     fi
 }
 
+# Fix DNS issues for Docker
+fix_dns() {
+    print_step "Checking DNS configuration..."
+
+    # Check if NetworkManager is running
+    if ! command -v nmcli &> /dev/null; then
+        print_info "NetworkManager not found, skipping DNS configuration"
+        return 0
+    fi
+
+    # Check if resolv.conf has IPv6 DNS that might cause timeouts
+    if grep -q "fe80::" /etc/resolv.conf 2>/dev/null; then
+        print_warning "Detected IPv6 DNS that may cause Docker connectivity issues"
+        print_info "Configuring reliable DNS servers..."
+
+        # Get active connection name
+        ACTIVE_CONN=$(nmcli -t -f NAME,DEVICE connection show --active | grep -E 'wlan0|eth0' | head -1 | cut -d':' -f1)
+
+        if [ -n "$ACTIVE_CONN" ]; then
+            print_info "Configuring DNS for connection: $ACTIVE_CONN"
+
+            # Configure Google DNS
+            sudo nmcli connection modify "$ACTIVE_CONN" ipv4.dns "8.8.8.8 8.8.4.4" 2>/dev/null || true
+            sudo nmcli connection modify "$ACTIVE_CONN" ipv4.ignore-auto-dns yes 2>/dev/null || true
+
+            # Disable IPv6 to prevent timeout issues
+            sudo nmcli connection modify "$ACTIVE_CONN" ipv6.method ignore 2>/dev/null || true
+
+            # Restart connection
+            print_info "Applying DNS configuration..."
+            sudo nmcli connection down "$ACTIVE_CONN" 2>/dev/null || true
+            sleep 2
+            sudo nmcli connection up "$ACTIVE_CONN" 2>/dev/null || true
+            sleep 2
+
+            # Restart Docker to pick up new DNS
+            print_info "Restarting Docker with new DNS configuration..."
+            sudo systemctl restart docker
+            sleep 3
+
+            print_success "DNS configuration updated"
+        else
+            print_warning "No active network connection found"
+        fi
+    else
+        print_success "DNS configuration looks good"
+    fi
+}
+
 # Clone or update repository
 setup_repository() {
     print_step "Setting up repository..."
@@ -371,6 +420,7 @@ main() {
     check_requirements
     install_docker
     check_docker_compose || exit 1
+    fix_dns
     setup_repository
     generate_secrets
     setup_environment
