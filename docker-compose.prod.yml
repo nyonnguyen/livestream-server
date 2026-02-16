@@ -30,6 +30,7 @@ services:
       - "3000:3000"
     volumes:
       - ./data:/app/data
+      - ./VERSION:/app/VERSION:ro
     environment:
       - NODE_ENV=${NODE_ENV:-production}
       - SERVER_IP=${SERVER_IP}
