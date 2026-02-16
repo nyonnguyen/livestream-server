@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import ChangePasswordModal from './ChangePasswordModal';
 import LanguageSwitcher from './LanguageSwitcher';
+import UpdateNotification from './UpdateNotification';
 
 export default function Layout({ children }) {
   const { t } = useTranslation();
@@ -149,6 +150,9 @@ export default function Layout({ children }) {
           }}
         />
       )}
+
+      {/* Update Notification */}
+      <UpdateNotification />
     </div>
   );
 }
