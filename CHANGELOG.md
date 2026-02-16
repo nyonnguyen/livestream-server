@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-02-16
+
+### Changed
+- feat: add local/public QR code selector in QR modal (#25)
+
+
+
 ## [1.3.0] - 2026-02-16
 
 ### Changed
@@ -159,3 +166,5 @@ Commit messages should follow:
 [1.2.6]: https://github.com/nyonnguyen/livestream-server/compare/v1.2.5...v1.2.6
 
 [1.3.0]: https://github.com/nyonnguyen/livestream-server/compare/v1.2.6...v1.3.0
+
+[1.4.0]: https://github.com/nyonnguyen/livestream-server/compare/v1.3.0...v1.4.0
