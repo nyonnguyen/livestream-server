@@ -282,6 +282,77 @@ docker exec -it livestream-api npm run reset-password admin newpassword123
 cp data/livestream.db data/livestream.db.backup
 ```
 
+## Updating the Server
+
+### Automatic Update (Recommended)
+
+Use the included update script to safely update your server:
+
+```bash
+cd /opt/livestream-server
+./update.sh
+```
+
+**What it does:**
+- ✅ Shows what changes will be applied
+- ✅ Asks for confirmation before updating
+- ✅ Backs up your configuration (.env)
+- ✅ Checks for uncommitted changes
+- ✅ Pulls latest code from GitHub
+- ✅ Updates Docker images
+- ✅ Restarts services
+- ✅ Shows status and rollback instructions
+
+**Update to a specific branch:**
+```bash
+./update.sh branch-name
+```
+
+### Manual Update
+
+If you prefer manual control:
+
+```bash
+# 1. Navigate to installation directory
+cd /opt/livestream-server
+
+# 2. Pull latest code
+git pull origin main
+
+# 3. Pull latest Docker images
+docker compose pull
+
+# 4. Restart services
+docker compose up -d
+
+# 5. Verify services are running
+docker compose ps
+```
+
+### Check for Updates in Web UI
+
+1. Navigate to **About** page in the web interface
+2. Click **Check for Updates** button
+3. If updates are available, follow the displayed instructions
+
+### Rollback to Previous Version
+
+If you encounter issues after updating:
+
+```bash
+# 1. View recent commits
+git log --oneline -10
+
+# 2. Checkout previous version
+git checkout <commit-hash>
+
+# 3. Restore backed up config (if needed)
+cp .env.backup.* .env
+
+# 4. Restart services
+docker compose restart
+```
+
 ## API Documentation
 
 ### Authentication
