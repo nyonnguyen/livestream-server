@@ -13,6 +13,7 @@ const webhookRoutes = require('./routes/webhooks');
 const configRoutes = require('./routes/config');
 const networkRoutes = require('./routes/network');
 const versionRoutes = require('./routes/version');
+const systemRoutes = require('./routes/system');
 
 // Import middleware
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
@@ -84,6 +85,7 @@ app.use('/api/hooks', webhookRoutes);
 app.use('/api/config', configRoutes);
 app.use('/api/network', networkRoutes);
 app.use('/api/version', versionRoutes);
+app.use('/api/system', systemRoutes);
 
 // API root
 app.get('/api', (req, res) => {
