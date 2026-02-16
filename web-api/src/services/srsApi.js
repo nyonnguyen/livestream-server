@@ -83,40 +83,58 @@ class SRSApi {
 
   /**
    * Get active streams with details
+   * Only returns streams with active publishers (source), not just players
    */
   static async getActiveStreamsWithDetails() {
     try {
       const streamsData = await this.getStreams();
       const streams = streamsData.streams || [];
 
-      return streams.map(stream => ({
-        id: stream.id,
-        name: stream.name,
-        vhost: stream.vhost,
-        app: stream.app,
-        live: stream.live,
-        clients: stream.clients || 0,
-        frames: stream.frames,
-        send_bytes: stream.send_bytes,
-        recv_bytes: stream.recv_bytes,
-        kbps: {
-          recv: stream.kbps ? stream.kbps.recv_30s : 0,
-          send: stream.kbps ? stream.kbps.send_30s : 0
-        },
-        video: stream.video ? {
-          codec: stream.video.codec,
-          profile: stream.video.profile,
-          level: stream.video.level,
-          width: stream.video.width,
-          height: stream.video.height,
-          fps: stream.video.frame_rate || stream.video.fps || null
-        } : null,
-        audio: stream.audio ? {
-          codec: stream.audio.codec,
-          sample_rate: stream.audio.sample_rate,
-          channels: stream.audio.channels
-        } : null
-      }));
+      // Filter to only include streams with active publishers
+      return streams
+        .filter(stream => {
+          // Check if stream has an active publisher
+          // SRS includes 'publish' object only if there's an active publisher
+          const hasPublisher = stream.publish && stream.publish.active;
+
+          if (!hasPublisher) {
+            console.log(`Skipping stream ${stream.name} - no active publisher (only players)`);
+          }
+
+          return hasPublisher;
+        })
+        .map(stream => ({
+          id: stream.id,
+          name: stream.name,
+          vhost: stream.vhost,
+          app: stream.app,
+          live: stream.live,
+          clients: stream.clients || 0,
+          frames: stream.frames,
+          send_bytes: stream.send_bytes,
+          recv_bytes: stream.recv_bytes,
+          kbps: {
+            recv: stream.kbps ? stream.kbps.recv_30s : 0,
+            send: stream.kbps ? stream.kbps.send_30s : 0
+          },
+          video: stream.video ? {
+            codec: stream.video.codec,
+            profile: stream.video.profile,
+            level: stream.video.level,
+            width: stream.video.width,
+            height: stream.video.height,
+            fps: stream.video.frame_rate || stream.video.fps || null
+          } : null,
+          audio: stream.audio ? {
+            codec: stream.audio.codec,
+            sample_rate: stream.audio.sample_rate,
+            channels: stream.audio.channels
+          } : null,
+          publish: {
+            active: true,
+            cid: stream.publish?.cid || null
+          }
+        }));
     } catch (error) {
       console.error('Error fetching active streams:', error.message);
       return [];
