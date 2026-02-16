@@ -74,4 +74,10 @@ export const configAPI = {
   stats: () => api.get('/config/stats'),
 };
 
+// System API
+export const systemAPI = {
+  update: () => api.post('/system/update'),
+  updateStatus: () => api.get('/system/update/status'),
+};
+
 export default api;
