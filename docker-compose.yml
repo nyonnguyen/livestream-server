@@ -30,6 +30,9 @@ services:
     volumes:
       - ./data:/app/data
       - ./VERSION:/app/VERSION:ro
+      - /proc:/host_proc:ro
+    cap_add:
+      - NET_ADMIN
     environment:
       - NODE_ENV=${NODE_ENV:-production}
       - SERVER_IP=${SERVER_IP}

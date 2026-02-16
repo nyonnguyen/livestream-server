@@ -1,4 +1,79 @@
 const os = require('os');
+const { execSync } = require('child_process');
+
+/**
+ * Get host network interfaces (from the host, not Docker container)
+ * Uses nsenter to access host's network namespace
+ */
+function getHostNetworkInterfaces() {
+  try {
+    // Use nsenter to enter the host's network namespace
+    // /host_proc is mounted from host's /proc
+    const command = 'nsenter --net=/host_proc/1/ns/net ip addr show';
+    const output = execSync(command, { encoding: 'utf8', timeout: 5000 });
+
+    const interfaces = [];
+    const lines = output.split('\n');
+    let currentInterface = null;
+
+    for (const line of lines) {
+      // Match interface name: "2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP>"
+      const ifaceMatch = line.match(/^\d+:\s+(\S+):/);
+      if (ifaceMatch) {
+        currentInterface = ifaceMatch[1].replace(/@.*$/, ''); // Remove @if122 suffix
+        continue;
+      }
+
+      // Match IPv4 address: "inet 192.168.1.100/24"
+      const ipMatch = line.match(/^\s+inet\s+(\d+\.\d+\.\d+\.\d+)\/(\d+)/);
+      if (ipMatch && currentInterface) {
+        const ip = ipMatch[1];
+        const cidr = parseInt(ipMatch[2]);
+
+        // Skip loopback
+        if (ip.startsWith('127.')) {
+          continue;
+        }
+
+        // Skip Docker bridge interfaces (docker0, br-, veth)
+        if (currentInterface.startsWith('docker') ||
+            currentInterface.startsWith('br-') ||
+            currentInterface.startsWith('veth')) {
+          continue;
+        }
+
+        // Calculate netmask from CIDR
+        const netmask = cidrToNetmask(cidr);
+
+        interfaces.push({
+          name: currentInterface,
+          address: ip,
+          netmask,
+          source: 'host'
+        });
+      }
+    }
+
+    return interfaces;
+  } catch (error) {
+    console.warn('Could not read host network interfaces via nsenter:', error.message);
+    console.warn('Make sure /proc is mounted and NET_ADMIN capability is granted');
+    return null;
+  }
+}
+
+/**
+ * Convert CIDR notation to netmask (e.g., 24 -> 255.255.255.0)
+ */
+function cidrToNetmask(cidr) {
+  const mask = [];
+  for (let i = 0; i < 4; i++) {
+    const n = Math.min(cidr, 8);
+    mask.push(256 - Math.pow(2, 8 - n));
+    cidr -= n;
+  }
+  return mask.join('.');
+}
 
 /**
  * Check if IP is a valid LAN address (not loopback)
@@ -64,9 +139,35 @@ function categorizeInterface(ip, name) {
 
 /**
  * Get all network interfaces with their IP addresses
- * Shows ALL interfaces including Docker, so user can see everything
+ * Prioritizes host interfaces over container interfaces
  */
 function getNetworkInterfaces() {
+  // Try to get host interfaces first
+  const hostInterfaces = getHostNetworkInterfaces();
+
+  if (hostInterfaces && hostInterfaces.length > 0) {
+    // Format host interfaces to match the expected structure
+    const results = hostInterfaces.map(iface => {
+      const category = categorizeInterface(iface.address, iface.name);
+      return {
+        name: iface.name,
+        address: iface.address,
+        type: category.type,
+        priority: category.priority,
+        label: category.label,
+        netmask: iface.netmask,
+        mac: null,  // MAC not available from ip command output
+        source: 'host'
+      };
+    });
+
+    // Sort by priority
+    results.sort((a, b) => a.priority - b.priority);
+    return results;
+  }
+
+  // Fallback to container interfaces if host detection fails
+  console.warn('Using container network interfaces (host detection failed)');
   const interfaces = os.networkInterfaces();
   const results = [];
 
@@ -85,7 +186,8 @@ function getNetworkInterfaces() {
           priority: category.priority,
           label: category.label,
           netmask: addr.netmask,
-          mac: addr.mac
+          mac: addr.mac,
+          source: 'container'
         });
       }
     });
