@@ -377,6 +377,32 @@ wait_for_services() {
     print_warning "Services may still be starting (this can take a few minutes)"
 }
 
+# Fix file permissions
+fix_permissions() {
+    print_step "Fixing file permissions..."
+
+    # Get the user who invoked the script (before sudo)
+    ACTUAL_USER="${SUDO_USER:-$USER}"
+
+    # Fix ownership of entire installation directory
+    sudo chown -R "$ACTUAL_USER:$ACTUAL_USER" "$INSTALL_DIR" 2>/dev/null || true
+
+    # Ensure git operations work without sudo
+    if [ -d "$INSTALL_DIR/.git" ]; then
+        sudo chown -R "$ACTUAL_USER:$ACTUAL_USER" "$INSTALL_DIR/.git" 2>/dev/null || true
+        sudo chmod -R u+w "$INSTALL_DIR/.git" 2>/dev/null || true
+    fi
+
+    # Fix data directory permissions for container
+    if [ -d "$INSTALL_DIR/data" ]; then
+        sudo chown -R "$ACTUAL_USER:$ACTUAL_USER" "$INSTALL_DIR/data" 2>/dev/null || true
+        sudo chmod -R 755 "$INSTALL_DIR/data" 2>/dev/null || true
+    fi
+
+    print_success "File permissions fixed"
+    print_info "User '$ACTUAL_USER' can now run git commands without sudo"
+}
+
 # Display success message
 display_success() {
     echo ""
@@ -403,6 +429,7 @@ display_success() {
     echo "  Restart: sudo systemctl restart $SERVICE_NAME"
     echo "  Status:  sudo systemctl status $SERVICE_NAME"
     echo "  Logs:    docker-compose logs -f"
+    echo "  Update:  cd $INSTALL_DIR && git pull origin main && docker-compose restart"
     echo ""
     echo -e "${BLUE}Documentation:${NC}"
     echo "  GitHub: https://github.com/nyonnguyen/livestream-server"
@@ -428,6 +455,7 @@ main() {
     start_application
     setup_systemd_service
     wait_for_services
+    fix_permissions
     display_success
 }
 
