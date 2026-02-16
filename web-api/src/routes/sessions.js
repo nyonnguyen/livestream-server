@@ -42,15 +42,23 @@ router.get('/', authenticate, asyncHandler(async (req, res) => {
       return null;
     }
 
+    // Skip if database session has ended (even if SRS still reports it)
+    // This handles race condition where webhook has run but SRS hasn't updated yet
+    if (!dbSession) {
+      // No database session found - skip this stream
+      console.log(`Skipping SRS stream ${cleanStreamName} - no active database session`);
+      return null;
+    }
+
     return {
-      id: dbSession?.id || null,
+      id: dbSession.id,
       stream_id: streamInfo.id,
       stream_name: streamInfo.name,
       stream_key: cleanStreamName,
       protocol: streamInfo.protocol,
-      ip_address: dbSession?.ip_address || 'N/A',
+      ip_address: dbSession.ip_address || 'N/A',
       client_id: srsStream.id,
-      started_at: dbSession?.started_at || new Date().toISOString(),
+      started_at: dbSession.started_at,
       live_data: {
         clients: srsStream.clients,
         kbps: srsStream.kbps,
