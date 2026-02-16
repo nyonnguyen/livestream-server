@@ -32,6 +32,7 @@ services:
       - ./data:/app/data
     environment:
       - NODE_ENV=${NODE_ENV:-production}
+      - SERVER_IP=${SERVER_IP}
       - JWT_SECRET=${JWT_SECRET}
       - DEFAULT_ADMIN_PASSWORD=${DEFAULT_ADMIN_PASSWORD}
       - MAX_CONCURRENT_STREAMS=${MAX_CONCURRENT_STREAMS:-3}
