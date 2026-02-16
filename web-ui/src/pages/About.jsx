@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Mail, Heart, Code, Github, RefreshCw, AlertCircle, CheckCircle, ExternalLink } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
+import { systemAPI } from '../services/api';
 
 export default function About() {
   const { t } = useTranslation();
@@ -54,7 +55,7 @@ export default function About() {
 
     try {
       // Start the update
-      const response = await axios.post('/api/system/update');
+      const response = await systemAPI.update();
 
       if (!response.data.success) {
         throw new Error(response.data.error || 'Failed to start update');
@@ -63,7 +64,7 @@ export default function About() {
       // Poll for status
       const pollInterval = setInterval(async () => {
         try {
-          const statusResponse = await axios.get('/api/system/update/status');
+          const statusResponse = await systemAPI.updateStatus();
           const { status, log } = statusResponse.data.data;
 
           if (status === 'complete') {
