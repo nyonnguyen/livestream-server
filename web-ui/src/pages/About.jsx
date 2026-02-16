@@ -1,9 +1,49 @@
-import { Mail, Heart, Code, Github } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Mail, Heart, Code, Github, RefreshCw, AlertCircle, CheckCircle, ExternalLink } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import axios from 'axios';
 
 export default function About() {
   const { t } = useTranslation();
-  const version = "0.9.0-beta";
+  const [versionInfo, setVersionInfo] = useState(null);
+  const [updateInfo, setUpdateInfo] = useState(null);
+  const [checking, setChecking] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetchVersion();
+  }, []);
+
+  const fetchVersion = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await axios.get('/api/version');
+      setVersionInfo(response.data.data);
+    } catch (err) {
+      console.error('Failed to fetch version:', err);
+      setError('Unable to fetch version information');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const checkForUpdates = async () => {
+    try {
+      setChecking(true);
+      setError(null);
+      const response = await axios.get('/api/version/check');
+      setUpdateInfo(response.data.data);
+    } catch (err) {
+      console.error('Failed to check for updates:', err);
+      setError('Unable to check for updates');
+    } finally {
+      setChecking(false);
+    }
+  };
+
+  const version = versionInfo?.version || "Loading...";
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -118,14 +158,104 @@ export default function About() {
       {/* Version Info */}
       <div className="card mt-6">
         <h2 className="text-xl font-bold mb-4">{t('about.versionInfo')}</h2>
+
+        {/* Current Version */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <p className="text-blue-900 font-medium mb-2">{t('about.currentVersion', { version })}</p>
-          <p className="text-blue-800 text-sm">
-            {t('about.betaNotice')}
+          <p className="text-blue-900 font-medium mb-2">
+            {loading ? (
+              'Loading version...'
+            ) : (
+              t('about.currentVersion', { version })
+            )}
           </p>
+          {versionInfo?.releaseDate && (
+            <p className="text-blue-700 text-sm">
+              Released: {new Date(versionInfo.releaseDate).toLocaleDateString()}
+            </p>
+          )}
         </div>
 
-        <div className="mt-4 space-y-2 text-sm text-gray-600">
+        {/* Check for Updates */}
+        <div className="mt-4">
+          <button
+            onClick={checkForUpdates}
+            disabled={checking || loading}
+            className="btn-primary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <RefreshCw className={`w-4 h-4 ${checking ? 'animate-spin' : ''}`} />
+            {checking ? 'Checking for updates...' : 'Check for Updates'}
+          </button>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mt-3 bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
+              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-red-900 font-medium text-sm">Error</p>
+                <p className="text-red-800 text-sm">{error}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Update Available */}
+          {updateInfo && updateInfo.hasUpdate && (
+            <div className="mt-3 bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="flex items-start gap-2 mb-2">
+                <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-green-900 font-medium">Update Available!</p>
+                  <p className="text-green-800 text-sm">
+                    Version {updateInfo.latest} is now available (current: {updateInfo.current})
+                  </p>
+                </div>
+              </div>
+
+              {updateInfo.releaseNotes && (
+                <div className="mt-3 bg-white rounded p-3 border border-green-200">
+                  <p className="text-gray-900 font-medium text-sm mb-2">What's New:</p>
+                  <div className="text-gray-700 text-sm prose prose-sm max-w-none">
+                    {updateInfo.releaseNotes.split('\n').map((line, i) => (
+                      <p key={i} className="mb-1">{line}</p>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="mt-3 space-y-2">
+                {updateInfo.releaseUrl && (
+                  <a
+                    href={updateInfo.releaseUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-green-700 hover:text-green-800 text-sm font-medium"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    View Release on GitHub
+                  </a>
+                )}
+                <div className="bg-gray-900 text-gray-100 rounded p-3 text-sm font-mono">
+                  <p className="text-gray-400 mb-1"># To update, SSH into your Pi and run:</p>
+                  <p>cd /opt/livestream-server</p>
+                  <p>git pull origin main</p>
+                  <p>docker compose pull</p>
+                  <p>docker compose up -d</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* No Update Available */}
+          {updateInfo && !updateInfo.hasUpdate && (
+            <div className="mt-3 bg-gray-50 border border-gray-200 rounded-lg p-3 flex items-center gap-2">
+              <CheckCircle className="w-5 h-5 text-gray-600" />
+              <p className="text-gray-900 text-sm">
+                You're running the latest version ({updateInfo.current})
+              </p>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-6 space-y-2 text-sm text-gray-600">
           <h3 className="font-semibold text-gray-900">{t('about.roadmap')}</h3>
           <ul className="list-disc list-inside ml-4 space-y-1">
             <li>{t('about.roadmapItem1')}</li>
