@@ -146,9 +146,83 @@ function getDatabaseStats() {
   };
 }
 
+/**
+ * Initialize default data (admin user, streams, config)
+ */
+function initializeDefaultData() {
+  const bcrypt = require('bcryptjs');
+  const crypto = require('crypto');
+
+  // Check if admin user already exists
+  const existingAdmin = db.prepare('SELECT id FROM users WHERE username = ?').get('admin');
+
+  if (!existingAdmin) {
+    // Create default admin user
+    const defaultPassword = process.env.DEFAULT_ADMIN_PASSWORD || 'admin123';
+    const passwordHash = bcrypt.hashSync(defaultPassword, 10);
+
+    db.prepare(`
+      INSERT INTO users (username, password_hash, email, must_change_password)
+      VALUES (?, ?, ?, ?)
+    `).run('admin', passwordHash, 'admin@localhost', 1);
+
+    console.log('✓ Created admin user (username: admin, password: ' + defaultPassword + ')');
+  }
+
+  // Check if streams already exist
+  const existingStreams = db.prepare('SELECT COUNT(*) as count FROM streams').get();
+
+  if (existingStreams.count === 0) {
+    // Create default streams
+    const generateStreamKey = (prefix) => {
+      const envKey = process.env[`DEFAULT_STREAM_KEY_${prefix.toUpperCase()}`];
+      return envKey || `${prefix}_${crypto.randomBytes(16).toString('hex')}`;
+    };
+
+    const streams = [
+      { name: 'Drone Stream 1', key: generateStreamKey('dronestream1'), desc: 'Default drone stream', protocol: 'rtmp' },
+      { name: 'Phone Stream 1', key: generateStreamKey('phonestream1'), desc: 'Default phone stream', protocol: 'rtmp' },
+      { name: 'Camera Stream 1', key: generateStreamKey('camerastream1'), desc: 'Default camera stream', protocol: 'rtmp' }
+    ];
+
+    const insertStream = db.prepare(`
+      INSERT INTO streams (name, stream_key, description, protocol, is_active)
+      VALUES (?, ?, ?, ?, 1)
+    `);
+
+    streams.forEach(stream => {
+      insertStream.run(stream.name, stream.key, stream.desc, stream.protocol);
+    });
+
+    console.log('✓ Created default streams');
+  }
+
+  // Check if config already exists
+  const existingConfig = db.prepare('SELECT COUNT(*) as count FROM config').get();
+
+  if (existingConfig.count === 0) {
+    // Create default configuration
+    const maxConcurrentStreams = process.env.MAX_CONCURRENT_STREAMS || '3';
+
+    db.prepare(`
+      INSERT INTO config (key, value, description)
+      VALUES (?, ?, ?)
+    `).run('max_concurrent_streams', maxConcurrentStreams, 'Maximum number of concurrent streams allowed');
+
+    console.log('✓ Created default configuration');
+  }
+}
+
 // Initialize schema if needed
 if (!isDatabaseInitialized()) {
   initializeSchema();
+}
+
+// Initialize default data on first run
+try {
+  initializeDefaultData();
+} catch (error) {
+  console.error('Error initializing default data:', error.message);
 }
 
 module.exports = {
