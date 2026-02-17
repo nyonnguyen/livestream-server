@@ -294,7 +294,7 @@ export default function QRCodeModal({ stream, onClose }) {
                   ⚙️ Manual setup (if QR doesn't work):
                 </h4>
                 <div className="text-sm text-gray-700 space-y-1">
-                  <p><strong>Server:</strong> rtmp://{serverIp}:1935/live</p>
+                  <p><strong>Server:</strong> rtmp://{activeIp}:1935/live</p>
                   <p><strong>Stream Key:</strong> {stream.stream_key}</p>
                 </div>
               </div>
