@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-02-18
+
+### Changed
+- Feature/v2.0.0 - Enhanced UI, System Monitoring & Advanced Stream Management (#35)
+
+
+
 ## [1.7.6] - 2026-02-18
 
 ### Changed
@@ -249,3 +256,5 @@ Commit messages should follow:
 [1.7.5]: https://github.com/nyonnguyen/livestream-server/compare/v1.7.4...v1.7.5
 
 [1.7.6]: https://github.com/nyonnguyen/livestream-server/compare/v1.7.5...v1.7.6
+
+[1.8.0]: https://github.com/nyonnguyen/livestream-server/compare/v1.7.6...v1.8.0
