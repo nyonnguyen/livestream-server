@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
-import { ComputerDesktopIcon, DevicePhoneMobileIcon, ClockIcon, MapPinIcon } from '@heroicons/react/24/outline';
+import { Monitor, Smartphone, Clock, MapPin, Info } from 'lucide-react';
 import ConfirmDialog from '../components/ConfirmDialog';
 
 const SessionManagement = () => {
@@ -58,14 +58,14 @@ const SessionManagement = () => {
   };
 
   const getDeviceIcon = (deviceInfo) => {
-    if (!deviceInfo) return <ComputerDesktopIcon className="h-6 w-6" />;
+    if (!deviceInfo) return <Monitor className="w-6 h-6" />;
 
     const lowerDevice = deviceInfo.toLowerCase();
     if (lowerDevice.includes('mobile') || lowerDevice.includes('android') || lowerDevice.includes('iphone')) {
-      return <DevicePhoneMobileIcon className="h-6 w-6" />;
+      return <Smartphone className="w-6 h-6" />;
     }
 
-    return <ComputerDesktopIcon className="h-6 w-6" />;
+    return <Monitor className="w-6 h-6" />;
   };
 
   const formatDate = (dateString) => {
@@ -148,11 +148,11 @@ const SessionManagement = () => {
                       </div>
                       <div className="mt-2 flex items-center text-sm text-gray-500 space-x-4">
                         <div className="flex items-center">
-                          <MapPinIcon className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
+                          <MapPin className="flex-shrink-0 mr-1.5 w-4 h-4 text-gray-400" />
                           <span>{session.ip_address || 'Unknown'}</span>
                         </div>
                         <div className="flex items-center">
-                          <ClockIcon className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
+                          <Clock className="flex-shrink-0 mr-1.5 w-4 h-4 text-gray-400" />
                           <span>Last active: {formatDate(session.last_activity)}</span>
                         </div>
                       </div>
@@ -181,9 +181,7 @@ const SessionManagement = () => {
       <div className="mt-6 bg-blue-50 border border-blue-200 rounded-md p-4">
         <div className="flex">
           <div className="flex-shrink-0">
-            <svg className="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-            </svg>
+            <Info className="w-5 h-5 text-blue-400" />
           </div>
           <div className="ml-3">
             <h3 className="text-sm font-medium text-blue-800">About Sessions</h3>

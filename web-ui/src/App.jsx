@@ -10,11 +10,11 @@ import Settings from './pages/Settings';
 import MobileStream from './pages/MobileStream';
 import Help from './pages/Help';
 import About from './pages/About';
-import Users from './pages/Users';
-import AuditLog from './pages/AuditLog';
-import StreamHistory from './pages/StreamHistory';
-import SessionManagement from './pages/SessionManagement';
-import SetupWizard from './pages/SetupWizard';
+// import Users from './pages/Users';
+// import AuditLog from './pages/AuditLog';
+// import StreamHistory from './pages/StreamHistory';
+// import SessionManagement from './pages/SessionManagement';
+// import SetupWizard from './pages/SetupWizard';
 import BugReport from './pages/BugReport';
 
 function ProtectedRoute({ children }) {
@@ -123,54 +123,13 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/users"
-        element={
-          <ProtectedRoute>
-            <Layout>
-              <Users />
-            </Layout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/audit"
-        element={
-          <ProtectedRoute>
-            <Layout>
-              <AuditLog />
-            </Layout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/streams/history"
-        element={
-          <ProtectedRoute>
-            <Layout>
-              <StreamHistory />
-            </Layout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/sessions/manage"
-        element={
-          <ProtectedRoute>
-            <Layout>
-              <SessionManagement />
-            </Layout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/setup"
-        element={
-          <ProtectedRoute>
-            <SetupWizard />
-          </ProtectedRoute>
-        }
-      />
+      {/* TODO: v2.0.0 features - implement later
+      <Route path="/users" element={<ProtectedRoute><Layout><Users /></Layout></ProtectedRoute>} />
+      <Route path="/audit" element={<ProtectedRoute><Layout><AuditLog /></Layout></ProtectedRoute>} />
+      <Route path="/streams/history" element={<ProtectedRoute><Layout><StreamHistory /></Layout></ProtectedRoute>} />
+      <Route path="/sessions/manage" element={<ProtectedRoute><Layout><SessionManagement /></Layout></ProtectedRoute>} />
+      <Route path="/setup" element={<ProtectedRoute><SetupWizard /></ProtectedRoute>} />
+      */}
       <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>
