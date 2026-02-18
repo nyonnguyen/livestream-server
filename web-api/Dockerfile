@@ -1,7 +1,7 @@
 FROM node:18-alpine
 
-# Install build dependencies for better-sqlite3 and network utilities
-RUN apk add --no-cache python3 make g++ util-linux iproute2
+# Install build dependencies for better-sqlite3, network utilities, git, and docker cli
+RUN apk add --no-cache python3 make g++ util-linux iproute2 git docker-cli
 
 WORKDIR /app
 

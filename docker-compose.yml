@@ -31,6 +31,9 @@ services:
       - ./data:/app/data
       - ./VERSION:/app/VERSION:ro
       - /proc:/host_proc:ro
+      - ./scripts:/host_scripts:ro
+      - .:/host_project:ro
+      - /var/run/docker.sock:/var/run/docker.sock
     cap_add:
       - NET_ADMIN      # For network namespace access
       - SYS_ADMIN      # For mount/uts/ipc namespace access
