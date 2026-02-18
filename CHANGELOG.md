@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.5] - 2026-02-18
+
+### Changed
+- Nyon/fix protocol url display (#33)
+
+
+
 ## [1.7.4] - 2026-02-18
 
 ### Changed
@@ -231,3 +238,5 @@ Commit messages should follow:
 [1.7.3]: https://github.com/nyonnguyen/livestream-server/compare/v1.7.2...v1.7.3
 
 [1.7.4]: https://github.com/nyonnguyen/livestream-server/compare/v1.7.3...v1.7.4
+
+[1.7.5]: https://github.com/nyonnguyen/livestream-server/compare/v1.7.4...v1.7.5
