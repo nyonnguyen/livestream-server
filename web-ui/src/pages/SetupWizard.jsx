@@ -2,14 +2,14 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  CheckIcon,
-  ArrowRightIcon,
-  ArrowLeftIcon,
-  SparklesIcon,
-  GlobeAltIcon,
-  VideoCameraIcon,
-  RocketLaunchIcon
-} from '@heroicons/react/24/outline';
+  Check,
+  ArrowRight,
+  ArrowLeft,
+  Sparkles,
+  Globe,
+  Video,
+  Rocket
+} from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -41,25 +41,25 @@ const SetupWizard = () => {
     {
       id: 1,
       name: 'Welcome',
-      icon: SparklesIcon,
+      icon: Sparkles,
       description: 'Get started with Livestream Server'
     },
     {
       id: 2,
       name: 'Network',
-      icon: GlobeAltIcon,
+      icon: Globe,
       description: 'Configure network settings'
     },
     {
       id: 3,
       name: 'Stream',
-      icon: VideoCameraIcon,
+      icon: Video,
       description: 'Create your first stream'
     },
     {
       id: 4,
       name: 'Complete',
-      icon: RocketLaunchIcon,
+      icon: Rocket,
       description: 'You\'re all set!'
     }
   ];
@@ -249,7 +249,7 @@ const SetupWizard = () => {
                         } transition-all duration-300`}
                       >
                         {currentStep > step.id ? (
-                          <CheckIcon className="h-6 w-6 text-white" />
+                          <Check className="h-6 w-6 text-white" />
                         ) : (
                           <step.icon className="h-5 w-5 text-white" />
                         )}
@@ -284,7 +284,7 @@ const SetupWizard = () => {
           {/* Step 1: Welcome */}
           {currentStep === 1 && (
             <div className="text-center">
-              <SparklesIcon className="mx-auto h-20 w-20 text-blue-600 mb-6" />
+              <Sparkles className="mx-auto h-20 w-20 text-blue-600 mb-6" />
               <h2 className="text-3xl font-bold text-gray-900 mb-4">
                 Welcome to Livestream Server!
               </h2>
@@ -294,17 +294,17 @@ const SetupWizard = () => {
               </p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto mt-12">
                 <div className="p-6 bg-blue-50 rounded-lg">
-                  <GlobeAltIcon className="h-10 w-10 text-blue-600 mx-auto mb-3" />
+                  <Globe className="h-10 w-10 text-blue-600 mx-auto mb-3" />
                   <h3 className="font-semibold text-gray-900 mb-2">Network Setup</h3>
                   <p className="text-sm text-gray-600">Auto-detect your IP addresses and configure monitoring</p>
                 </div>
                 <div className="p-6 bg-purple-50 rounded-lg">
-                  <VideoCameraIcon className="h-10 w-10 text-purple-600 mx-auto mb-3" />
+                  <Video className="h-10 w-10 text-purple-600 mx-auto mb-3" />
                   <h3 className="font-semibold text-gray-900 mb-2">Create Stream</h3>
                   <p className="text-sm text-gray-600">Set up your first livestream with default settings</p>
                 </div>
                 <div className="p-6 bg-green-50 rounded-lg">
-                  <RocketLaunchIcon className="h-10 w-10 text-green-600 mx-auto mb-3" />
+                  <Rocket className="h-10 w-10 text-green-600 mx-auto mb-3" />
                   <h3 className="font-semibold text-gray-900 mb-2">You're Ready!</h3>
                   <p className="text-sm text-gray-600">Start streaming immediately after setup</p>
                 </div>
@@ -333,7 +333,7 @@ const SetupWizard = () => {
                     </>
                   ) : (
                     <>
-                      <GlobeAltIcon className="h-4 w-4 mr-2" />
+                      <Globe className="h-4 w-4 mr-2" />
                       Auto-Detect Network
                     </>
                   )}
@@ -512,7 +512,7 @@ const SetupWizard = () => {
             <div className="text-center">
               <div className="mb-6">
                 <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-green-100">
-                  <CheckIcon className="h-12 w-12 text-green-600" />
+                  <Check className="h-12 w-12 text-green-600" />
                 </div>
               </div>
               <h2 className="text-3xl font-bold text-gray-900 mb-4">
@@ -555,7 +555,7 @@ const SetupWizard = () => {
                 onClick={handlePrevious}
                 className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
-                <ArrowLeftIcon className="h-4 w-4 mr-2" />
+                <ArrowLeft className="h-4 w-4 mr-2" />
                 Previous
               </button>
             )}
@@ -581,7 +581,7 @@ const SetupWizard = () => {
               ) : (
                 <>
                   Next
-                  <ArrowRightIcon className="h-4 w-4 ml-2" />
+                  <ArrowRight className="h-4 w-4 ml-2" />
                 </>
               )}
             </button>
