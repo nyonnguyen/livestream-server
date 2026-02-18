@@ -16,7 +16,8 @@ import {
   Users,
   FileText,
   History,
-  Shield
+  Shield,
+  Bug
 } from 'lucide-react';
 import ChangePasswordModal from './ChangePasswordModal';
 import LanguageSwitcher from './LanguageSwitcher';
@@ -54,6 +55,7 @@ export default function Layout({ children }) {
     { name: 'Audit Log', href: '/audit', icon: FileText, permission: 'audit:read', adminOnly: true },
     { name: t('nav.settings') || 'Settings', href: '/settings', icon: Settings },
     { name: t('nav.help') || 'Help', href: '/help', icon: HelpCircle },
+    { name: 'Report Bug', href: '/bug-report', icon: Bug },
     { name: t('nav.about') || 'About', href: '/about', icon: Info },
   ];
 

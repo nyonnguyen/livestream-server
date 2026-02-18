@@ -15,6 +15,7 @@ import AuditLog from './pages/AuditLog';
 import StreamHistory from './pages/StreamHistory';
 import SessionManagement from './pages/SessionManagement';
 import SetupWizard from './pages/SetupWizard';
+import BugReport from './pages/BugReport';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -108,6 +109,16 @@ function AppRoutes() {
           <ProtectedRoute>
             <Layout>
               <About />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/bug-report"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <BugReport />
             </Layout>
           </ProtectedRoute>
         }
