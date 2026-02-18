@@ -5,15 +5,13 @@ import axios from 'axios';
 import UserRoleBadge from '../components/UserRoleBadge';
 import ConfirmDialog from '../components/ConfirmDialog';
 import {
-  UserPlusIcon,
-  PencilIcon,
-  TrashIcon,
-  ArrowPathIcon,
-  EyeIcon,
-  MagnifyingGlassIcon,
-} from '@heroicons/react/24/outline';
-import { Dialog, Transition } from '@headlessui/react';
-import { Fragment } from 'react';
+  UserPlus,
+  Edit,
+  Trash2,
+  RotateCw,
+  Eye,
+  Search,
+} from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -260,7 +258,7 @@ const Users = () => {
             }}
             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
-            <UserPlusIcon className="h-5 w-5 mr-2" />
+            <UserPlus className="h-5 w-5 mr-2" />
             Create User
           </button>
         </div>
@@ -271,7 +269,7 @@ const Users = () => {
         <div className="flex-1">
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+              <Search className="h-5 w-5 text-gray-400" />
             </div>
             <input
               type="text"
@@ -377,7 +375,7 @@ const Users = () => {
                           className="text-blue-600 hover:text-blue-900"
                           title="Edit"
                         >
-                          <PencilIcon className="h-5 w-5" />
+                          <Edit className="h-5 w-5" />
                         </button>
                         <button
                           onClick={() => {
@@ -387,7 +385,7 @@ const Users = () => {
                           className="text-red-600 hover:text-red-900"
                           title="Delete"
                         >
-                          <TrashIcon className="h-5 w-5" />
+                          <Trash2 className="h-5 w-5" />
                         </button>
                       </div>
                     </td>
@@ -442,7 +440,7 @@ const Users = () => {
                         }}
                         className="inline-flex items-center text-green-600 hover:text-green-900"
                       >
-                        <ArrowPathIcon className="h-5 w-5 mr-1" />
+                        <RotateCw className="h-5 w-5 mr-1" />
                         Restore
                       </button>
                     </td>
@@ -531,39 +529,19 @@ const UserFormModal = ({
   processing,
   isCreate,
 }) => {
-  return (
-    <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={onClose}>
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0 bg-black bg-opacity-25" />
-        </Transition.Child>
+  if (!isOpen) return null;
 
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4">
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 scale-95"
-              enterTo="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 scale-100"
-              leaveTo="opacity-0 scale-95"
-            >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-                <Dialog.Title
-                  as="h3"
-                  className="text-lg font-medium leading-6 text-gray-900 mb-4"
-                >
-                  {title}
-                </Dialog.Title>
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+      {/* Backdrop */}
+      <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={onClose}></div>
+
+      {/* Modal */}
+      <div className="flex min-h-full items-center justify-center p-4">
+        <div className="relative w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left shadow-xl transition-all">
+          <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4" id="modal-title">
+            {title}
+          </h3>
 
                 <div className="space-y-4">
                   <div>
@@ -668,12 +646,9 @@ const UserFormModal = ({
                     {processing ? 'Processing...' : isCreate ? 'Create User' : 'Save Changes'}
                   </button>
                 </div>
-              </Dialog.Panel>
-            </Transition.Child>
-          </div>
         </div>
-      </Dialog>
-    </Transition>
+      </div>
+    </div>
   );
 };
 
