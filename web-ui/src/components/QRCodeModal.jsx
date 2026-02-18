@@ -65,11 +65,14 @@ export default function QRCodeModal({ stream, onClose }) {
   const port = window.location.port ? `:${window.location.port}` : '';
   const protocol = window.location.protocol;
 
-  // Mobile-friendly web URL that auto-copies RTMP to clipboard
+  // Mobile-friendly web URL that auto-copies URL to clipboard
   const mobileUrl = `${protocol}//${activeIp}${port}/mobile/${stream.stream_key}`;
 
-  // Direct RTMP URL for manual entry
+  // Generate URLs based on stream protocol
+  const streamProtocol = stream.protocol || 'rtmp';
   const rtmpUrl = `rtmp://${activeIp}:1935/live/${stream.stream_key}`;
+  const srtPublishUrl = `srt://${activeIp}:1935?streamid=#!::r=${stream.stream_key},m=publish`;
+  const srtPlayUrl = `srt://${activeIp}:1935?streamid=#!::r=${stream.stream_key},m=request`;
   const playbackUrl = `http://${activeIp}:8080/live/${stream.stream_key}.flv`;
 
   const copyToClipboard = async (text, label) => {
@@ -187,7 +190,7 @@ export default function QRCodeModal({ stream, onClose }) {
             </div>
             <div className="text-center space-y-2">
               <p className="text-xs text-gray-600">
-                Scan with phone camera to auto-copy RTMP URL
+                Scan with phone camera to auto-copy {streamProtocol === 'srt' ? 'SRT' : 'RTMP'} URL
               </p>
               <div className="flex flex-col items-center gap-2">
                 <div className="flex justify-center">
@@ -222,30 +225,76 @@ export default function QRCodeModal({ stream, onClose }) {
             </h3>
 
             <div className="space-y-4">
-              {/* Stream URL */}
-              <div>
-                <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
-                  RTMP URL
-                </label>
-                <div className="mt-1 flex gap-2">
-                  <div className="flex-1 p-2 bg-gray-50 rounded text-sm font-mono break-all">
-                    {rtmpUrl}
+              {/* RTMP URL - show when protocol is rtmp or both */}
+              {(streamProtocol === 'rtmp' || streamProtocol === 'both') && (
+                <div>
+                  <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                    RTMP URL
+                  </label>
+                  <div className="mt-1 flex gap-2">
+                    <div className="flex-1 p-2 bg-gray-50 rounded text-sm font-mono break-all">
+                      {rtmpUrl}
+                    </div>
+                    <button
+                      onClick={() => copyToClipboard(rtmpUrl, 'RTMP URL')}
+                      className="px-3 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 flex items-center gap-1 whitespace-nowrap"
+                      title="Copy RTMP URL"
+                    >
+                      <Copy className="w-4 h-4" />
+                      <span className="text-xs">Copy</span>
+                    </button>
                   </div>
-                  <button
-                    onClick={() => copyToClipboard(rtmpUrl, 'RTMP URL')}
-                    className="px-3 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 flex items-center gap-1 whitespace-nowrap"
-                    title="Copy RTMP URL"
-                  >
-                    <Copy className="w-4 h-4" />
-                    <span className="text-xs">Copy</span>
-                  </button>
                 </div>
-              </div>
+              )}
 
-              {/* Playback URL */}
+              {/* SRT Publish URL - show when protocol is srt or both */}
+              {(streamProtocol === 'srt' || streamProtocol === 'both') && (
+                <div>
+                  <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                    SRT Publish URL
+                  </label>
+                  <div className="mt-1 flex gap-2">
+                    <div className="flex-1 p-2 bg-gray-50 rounded text-sm font-mono break-all">
+                      {srtPublishUrl}
+                    </div>
+                    <button
+                      onClick={() => copyToClipboard(srtPublishUrl, 'SRT Publish URL')}
+                      className="px-3 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 flex items-center gap-1 whitespace-nowrap"
+                      title="Copy SRT Publish URL"
+                    >
+                      <Copy className="w-4 h-4" />
+                      <span className="text-xs">Copy</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* SRT Playback URL - show when protocol is srt or both */}
+              {(streamProtocol === 'srt' || streamProtocol === 'both') && (
+                <div>
+                  <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                    SRT Playback URL
+                  </label>
+                  <div className="mt-1 flex gap-2">
+                    <div className="flex-1 p-2 bg-gray-50 rounded text-sm font-mono break-all">
+                      {srtPlayUrl}
+                    </div>
+                    <button
+                      onClick={() => copyToClipboard(srtPlayUrl, 'SRT Playback URL')}
+                      className="px-3 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 flex items-center gap-1 whitespace-nowrap"
+                      title="Copy SRT Playback URL"
+                    >
+                      <Copy className="w-4 h-4" />
+                      <span className="text-xs">Copy</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* HTTP-FLV Playback URL - always show */}
               <div>
                 <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
-                  Playback URL
+                  HTTP-FLV Playback URL
                 </label>
                 <div className="mt-1 flex gap-2">
                   <div className="flex-1 p-2 bg-gray-50 rounded text-sm font-mono break-all">
@@ -294,8 +343,18 @@ export default function QRCodeModal({ stream, onClose }) {
                   ⚙️ Manual setup (if QR doesn't work):
                 </h4>
                 <div className="text-sm text-gray-700 space-y-1">
-                  <p><strong>Server:</strong> rtmp://{activeIp}:1935/live</p>
-                  <p><strong>Stream Key:</strong> {stream.stream_key}</p>
+                  {(streamProtocol === 'rtmp' || streamProtocol === 'both') && (
+                    <>
+                      <p><strong>RTMP Server:</strong> rtmp://{activeIp}:1935/live</p>
+                      <p><strong>Stream Key:</strong> {stream.stream_key}</p>
+                    </>
+                  )}
+                  {(streamProtocol === 'srt' || streamProtocol === 'both') && streamProtocol !== 'rtmp' && (
+                    <>
+                      <p><strong>SRT URL:</strong> srt://{activeIp}:1935</p>
+                      <p><strong>Stream ID:</strong> #!::r={stream.stream_key},m=publish</p>
+                    </>
+                  )}
                 </div>
               </div>
 
