@@ -14,9 +14,16 @@ const configRoutes = require('./routes/config');
 const networkRoutes = require('./routes/network');
 const versionRoutes = require('./routes/version');
 const systemRoutes = require('./routes/system');
+const usersRoutes = require('./routes/users');
+const auditRoutes = require('./routes/audit');
+const setupRoutes = require('./routes/setup');
 
 // Import middleware
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
+
+// Import services
+const cleanupService = require('./services/cleanup');
+const publicIpMonitor = require('./services/publicIpMonitor');
 
 // Initialize database
 require('./config/database');
@@ -86,19 +93,25 @@ app.use('/api/config', configRoutes);
 app.use('/api/network', networkRoutes);
 app.use('/api/version', versionRoutes);
 app.use('/api/system', systemRoutes);
+app.use('/api/users', usersRoutes);
+app.use('/api/audit', auditRoutes);
+app.use('/api/setup', setupRoutes);
 
 // API root
 app.get('/api', (req, res) => {
   res.json({
     success: true,
     message: 'Livestream API Server',
-    version: '1.0.0',
+    version: '2.0.0',
     endpoints: {
       auth: '/api/auth',
       streams: '/api/streams',
       sessions: '/api/sessions',
       config: '/api/config',
       network: '/api/network',
+      users: '/api/users',
+      audit: '/api/audit',
+      setup: '/api/setup',
       health: '/api/health'
     }
   });
@@ -117,7 +130,7 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`
 ╔═══════════════════════════════════════════════════════╗
 ║                                                       ║
-║   Livestream API Server                               ║
+║   Livestream API Server v2.0.0                        ║
 ║   Running on port ${PORT}                                 ║
 ║   Environment: ${process.env.NODE_ENV || 'production'}                            ║
 ║                                                       ║
@@ -129,8 +142,22 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`  - Auth:   http://localhost:${PORT}/api/auth`);
   console.log(`  - Streams: http://localhost:${PORT}/api/streams`);
   console.log(`  - Sessions: http://localhost:${PORT}/api/sessions`);
+  console.log(`  - Users:  http://localhost:${PORT}/api/users`);
+  console.log(`  - Audit:  http://localhost:${PORT}/api/audit`);
   console.log(`  - Config: http://localhost:${PORT}/api/config`);
   console.log(`  - Network: http://localhost:${PORT}/api/network`);
+  console.log(`  - Setup:  http://localhost:${PORT}/api/setup`);
+  console.log('');
+
+  // Start background services
+  console.log('Starting background services...');
+
+  // Start cleanup service (runs every 24 hours)
+  cleanupService.startPeriodicCleanup(24);
+
+  // Start public IP monitor
+  publicIpMonitor.start();
+
   console.log('');
   console.log('Ready to accept requests!');
 });
@@ -138,10 +165,12 @@ app.listen(PORT, '0.0.0.0', () => {
 // Graceful shutdown
 process.on('SIGTERM', () => {
   console.log('SIGTERM received, shutting down gracefully...');
+  publicIpMonitor.stop();
   process.exit(0);
 });
 
 process.on('SIGINT', () => {
   console.log('SIGINT received, shutting down gracefully...');
+  publicIpMonitor.stop();
   process.exit(0);
 });

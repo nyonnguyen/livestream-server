@@ -13,16 +13,23 @@ import {
   X,
   HelpCircle,
   Info,
+  Users,
+  FileText,
+  History,
+  Shield,
+  Bug
 } from 'lucide-react';
 import ChangePasswordModal from './ChangePasswordModal';
 import LanguageSwitcher from './LanguageSwitcher';
 import UpdateNotification from './UpdateNotification';
+import PermissionGuard from './PermissionGuard';
+import UserRoleBadge from './UserRoleBadge';
 
 export default function Layout({ children }) {
   const { t } = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const { user, logout } = useAuth();
+  const { user, logout, hasPermission, role } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -39,12 +46,17 @@ export default function Layout({ children }) {
   };
 
   const navigation = [
-    { name: t('nav.dashboard'), href: '/', icon: LayoutDashboard },
-    { name: t('nav.streams'), href: '/streams', icon: Radio },
-    { name: t('nav.sessions'), href: '/sessions', icon: Activity },
-    { name: t('nav.settings'), href: '/settings', icon: Settings },
-    { name: t('nav.help'), href: '/help', icon: HelpCircle },
-    { name: t('nav.about'), href: '/about', icon: Info },
+    { name: t('nav.dashboard') || 'Dashboard', href: '/', icon: LayoutDashboard },
+    { name: t('nav.streams') || 'Streams', href: '/streams', icon: Radio },
+    { name: 'Stream History', href: '/streams/history', icon: History, permission: 'streams:read' },
+    { name: t('nav.sessions') || 'Sessions', href: '/sessions', icon: Activity },
+    { name: 'My Sessions', href: '/sessions/manage', icon: Shield },
+    { name: 'Users', href: '/users', icon: Users, permission: 'users:read', adminOnly: true },
+    { name: 'Audit Log', href: '/audit', icon: FileText, permission: 'audit:read', adminOnly: true },
+    { name: t('nav.settings') || 'Settings', href: '/settings', icon: Settings },
+    { name: t('nav.help') || 'Help', href: '/help', icon: HelpCircle },
+    { name: 'Report Bug', href: '/bug-report', icon: Bug },
+    { name: t('nav.about') || 'About', href: '/about', icon: Info },
   ];
 
   return (
@@ -80,6 +92,11 @@ export default function Layout({ children }) {
 
         <nav className="flex-1 px-4 py-4 space-y-1">
           {navigation.map((item) => {
+            // Check permissions for restricted items
+            if (item.permission && !hasPermission(item.permission)) {
+              return null;
+            }
+
             const Icon = item.icon;
             const isActive = location.pathname === item.href;
 
@@ -95,6 +112,11 @@ export default function Layout({ children }) {
               >
                 <Icon className="w-5 h-5 mr-3" />
                 {item.name}
+                {item.adminOnly && (
+                  <span className="ml-auto text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded-full">
+                    Admin
+                  </span>
+                )}
               </Link>
             );
           })}
@@ -103,7 +125,10 @@ export default function Layout({ children }) {
         <div className="border-t border-gray-200 p-4">
           <div className="flex items-center mb-4">
             <div className="flex-1">
-              <p className="text-sm font-medium text-gray-900">{user?.username}</p>
+              <div className="flex items-center space-x-2 mb-1">
+                <p className="text-sm font-medium text-gray-900">{user?.username}</p>
+                {user?.role && <UserRoleBadge role={user.role} />}
+              </div>
               <p className="text-xs text-gray-500">{user?.email || t('nav.administrator')}</p>
             </div>
           </div>

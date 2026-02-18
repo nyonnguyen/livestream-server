@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link, useNavigate } from 'react-router-dom';
 import { streamsAPI, sessionsAPI } from '../services/api';
 import {
   Plus,
@@ -15,13 +16,20 @@ import {
   ChevronDown,
   ChevronUp,
   Play,
+  History as HistoryIcon,
+  ChevronsDown,
+  ChevronsUp,
+  AlertTriangle,
 } from 'lucide-react';
 import StreamModal from '../components/StreamModal';
 import QRCodeModal from '../components/QRCodeModal';
 import FlvPlayer from '../components/FlvPlayer';
+import ConfirmDialog from '../components/ConfirmDialog';
+import axios from 'axios';
 
 export default function Streams() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [streams, setStreams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -34,12 +42,17 @@ export default function Streams() {
   const [activeSessions, setActiveSessions] = useState([]);
   const [expandedStreams, setExpandedStreams] = useState({});
   const [playingStreams, setPlayingStreams] = useState({});
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deletingStream, setDeletingStream] = useState(null);
+  const [deletionReason, setDeletionReason] = useState('');
+  const [streamLimit, setStreamLimit] = useState(null);
 
   useEffect(() => {
     fetchStreams();
     fetchServerIP();
     fetchNetworkConfig();
     fetchActiveSessions();
+    fetchStreamLimit();
 
     // Poll for active sessions every 5 seconds
     const interval = setInterval(fetchActiveSessions, 5000);
@@ -85,8 +98,50 @@ export default function Streams() {
     }
   };
 
+  const fetchStreamLimit = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('/api/system/stream-limit', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.data.success) {
+        setStreamLimit(response.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching stream limit:', error);
+    }
+  };
+
   const isStreamLive = (streamId) => {
     return activeSessions.some(session => session.stream_id === streamId);
+  };
+
+  const isDefaultStream = (stream) => {
+    // Mark first 3 streams by ID as default streams
+    const sortedStreams = [...streams].sort((a, b) => a.id - b.id);
+    const defaultIds = sortedStreams.slice(0, 3).map(s => s.id);
+    return defaultIds.includes(stream.id);
+  };
+
+  const collapseAll = () => {
+    setExpandedStreams({});
+    setPlayingStreams({});
+  };
+
+  const expandAll = () => {
+    const allExpanded = {};
+    streams.forEach(stream => {
+      allExpanded[stream.id] = true;
+    });
+    setExpandedStreams(allExpanded);
+  };
+
+  // Calculate statistics
+  const statistics = {
+    total: streams.length,
+    active: streams.filter(s => s.is_active).length,
+    inactive: streams.filter(s => !s.is_active).length,
+    live: streams.filter(s => isStreamLive(s.id)).length,
   };
 
   const fetchStreams = async () => {
@@ -104,6 +159,27 @@ export default function Streams() {
   };
 
   const handleCreate = () => {
+    // Check if adding a new stream would exceed the limit
+    if (streamLimit && streams.length >= streamLimit.maxStreams) {
+      const confirmed = confirm(
+        `⚠️ Hardware Limit Warning\n\n` +
+        `Your system is configured for a maximum of ${streamLimit.maxStreams} concurrent streams based on hardware capacity.\n\n` +
+        `Current streams: ${streams.length}\n` +
+        `Recommended max: ${streamLimit.maxStreams}\n\n` +
+        `Adding more streams may cause performance issues or instability.\n\n` +
+        `Do you want to proceed anyway?`
+      );
+      if (!confirmed) return;
+    } else if (streamLimit && streams.length >= streamLimit.maxStreams * 0.8) {
+      // Warning when approaching 80% of limit
+      alert(
+        `⚠️ Approaching Stream Limit\n\n` +
+        `Current streams: ${streams.length}\n` +
+        `Recommended max: ${streamLimit.maxStreams}\n\n` +
+        `You're approaching your system's capacity. Monitor performance closely.`
+      );
+    }
+
     setEditingStream(null);
     setShowModal(true);
   };
@@ -113,16 +189,49 @@ export default function Streams() {
     setShowModal(true);
   };
 
-  const handleDelete = async (id, name) => {
-    if (!confirm(t('streams.deleteConfirm', { name }))) {
+  const handleDelete = async (stream) => {
+    // Prevent deletion of default streams
+    if (isDefaultStream(stream)) {
+      alert(
+        `❌ Cannot Delete Default Stream\n\n` +
+        `"${stream.name}" is a default stream and cannot be deleted.\n\n` +
+        `Default streams can be disabled but not removed from the system.`
+      );
       return;
     }
 
+    setDeletingStream(stream);
+    setDeletionReason('');
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deletingStream) return;
+
     try {
-      await streamsAPI.delete(id);
-      fetchStreams();
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/streams/${deletingStream.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          deletion_reason: deletionReason || 'No reason provided'
+        })
+      });
+
+      if (response.ok) {
+        fetchStreams();
+        setShowDeleteDialog(false);
+        setDeletingStream(null);
+        setDeletionReason('');
+      } else {
+        const error = await response.json();
+        alert(t('streams.errorDeleting') + (error.error || 'Unknown error'));
+      }
     } catch (error) {
-      alert(t('streams.errorDeleting') + error.response?.data?.error);
+      alert(t('streams.errorDeleting') + error.message);
     }
   };
 
@@ -284,11 +393,113 @@ export default function Streams() {
           <h1 className="text-2xl font-bold text-gray-900">{t('streams.title')}</h1>
           <p className="text-gray-600">{t('streams.subtitle')}</p>
         </div>
-        <button onClick={handleCreate} className="btn-primary flex items-center">
-          <Plus className="w-5 h-5 mr-2" />
-          {t('streams.addStream')}
-        </button>
+        <div className="flex gap-3">
+          <Link
+            to="/streams/history"
+            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            <HistoryIcon className="w-5 h-5 mr-2" />
+            View History
+          </Link>
+          <button onClick={handleCreate} className="btn-primary flex items-center">
+            <Plus className="w-5 h-5 mr-2" />
+            {t('streams.addStream')}
+          </button>
+        </div>
       </div>
+
+      {/* Stream Limit Warning */}
+      {streamLimit && streams.length >= streamLimit.maxStreams * 0.8 && (
+        <div className={`mb-4 p-4 rounded-lg border-2 flex items-start ${
+          streams.length >= streamLimit.maxStreams
+            ? 'bg-red-50 border-red-300'
+            : 'bg-yellow-50 border-yellow-300'
+        }`}>
+          <AlertTriangle className={`w-5 h-5 mr-3 flex-shrink-0 mt-0.5 ${
+            streams.length >= streamLimit.maxStreams ? 'text-red-600' : 'text-yellow-600'
+          }`} />
+          <div className="flex-1">
+            <p className={`text-sm font-semibold ${
+              streams.length >= streamLimit.maxStreams ? 'text-red-800' : 'text-yellow-800'
+            }`}>
+              {streams.length >= streamLimit.maxStreams
+                ? '⚠️ Stream Limit Reached'
+                : '⚠️ Approaching Stream Limit'}
+            </p>
+            <p className={`text-sm mt-1 ${
+              streams.length >= streamLimit.maxStreams ? 'text-red-700' : 'text-yellow-700'
+            }`}>
+              Current: <strong>{streams.length}</strong> streams |
+              Recommended max: <strong>{streamLimit.maxStreams}</strong> streams
+              (based on {streamLimit.reasoning.cpuCores} CPU cores, {streamLimit.reasoning.ramGB} GB RAM)
+            </p>
+            {streams.length >= streamLimit.maxStreams && (
+              <p className="text-sm text-red-700 mt-1">
+                Adding more streams may cause performance degradation or system instability.
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Statistics and Controls */}
+      {streams.length > 0 && (
+        <div className="card mb-4 bg-gradient-to-r from-blue-50 to-indigo-50">
+          <div className="flex items-center justify-between">
+            {/* Statistics */}
+            <div className="flex items-center gap-6">
+              <div>
+                <p className="text-xs text-gray-600 uppercase tracking-wide">Total Streams</p>
+                <p className="text-2xl font-bold text-gray-900">{statistics.total}</p>
+              </div>
+              <div className="h-12 w-px bg-gray-300" />
+              <div>
+                <p className="text-xs text-gray-600 uppercase tracking-wide">Active</p>
+                <p className="text-2xl font-bold text-green-600">{statistics.active}</p>
+              </div>
+              <div className="h-12 w-px bg-gray-300" />
+              <div>
+                <p className="text-xs text-gray-600 uppercase tracking-wide">Inactive</p>
+                <p className="text-2xl font-bold text-gray-500">{statistics.inactive}</p>
+              </div>
+              <div className="h-12 w-px bg-gray-300" />
+              <div>
+                <p className="text-xs text-gray-600 uppercase tracking-wide">Live Now</p>
+                <p className="text-2xl font-bold text-red-600">{statistics.live}</p>
+              </div>
+              {streamLimit && (
+                <>
+                  <div className="h-12 w-px bg-gray-300" />
+                  <div>
+                    <p className="text-xs text-gray-600 uppercase tracking-wide">System Limit</p>
+                    <p className="text-2xl font-bold text-purple-600">{streamLimit.maxStreams}</p>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Collapse/Expand All Buttons */}
+            <div className="flex gap-2">
+              <button
+                onClick={collapseAll}
+                className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                title="Collapse all streams"
+              >
+                <ChevronsUp className="w-4 h-4 mr-1" />
+                Collapse All
+              </button>
+              <button
+                onClick={expandAll}
+                className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                title="Expand all streams"
+              >
+                <ChevronsDown className="w-4 h-4 mr-1" />
+                Expand All
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {streams.length === 0 ? (
         <div className="card text-center py-12">
@@ -324,6 +535,12 @@ export default function Streams() {
                     <h3 className="text-lg font-semibold text-gray-900">
                       {stream.name}
                     </h3>
+
+                    {isDefaultStream(stream) && (
+                      <span className="px-2 py-1 text-xs font-bold bg-purple-100 text-purple-800 rounded-full flex items-center">
+                        🛡️ DEFAULT
+                      </span>
+                    )}
 
                     {isLive && (
                       <span className="px-2 py-1 text-xs font-bold bg-red-100 text-red-800 rounded-full animate-pulse flex items-center">
@@ -392,9 +609,14 @@ export default function Streams() {
                       <RefreshCw className="w-5 h-5" />
                     </button>
                     <button
-                      onClick={() => handleDelete(stream.id, stream.name)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-                      title={t('streams.delete')}
+                      onClick={() => handleDelete(stream)}
+                      className={`p-2 rounded-lg ${
+                        isDefaultStream(stream)
+                          ? 'text-gray-400 cursor-not-allowed'
+                          : 'text-red-600 hover:bg-red-50'
+                      }`}
+                      title={isDefaultStream(stream) ? 'Cannot delete default stream' : t('streams.delete')}
+                      disabled={isDefaultStream(stream)}
                     >
                       <Trash2 className="w-5 h-5" />
                     </button>
@@ -789,6 +1011,41 @@ export default function Streams() {
           onClose={() => setQrCodeStream(null)}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={showDeleteDialog}
+        onClose={() => {
+          setShowDeleteDialog(false);
+          setDeletingStream(null);
+          setDeletionReason('');
+        }}
+        onConfirm={confirmDelete}
+        title="Delete Stream"
+        confirmText="Delete Stream"
+        type="danger"
+      >
+        {deletingStream && (
+          <div>
+            <p className="text-sm text-gray-500 mb-4">
+              Are you sure you want to delete the stream <strong>{deletingStream.name}</strong>?
+              This stream will be moved to the history and can be restored within 30 days.
+            </p>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Deletion Reason (optional)
+              </label>
+              <textarea
+                value={deletionReason}
+                onChange={(e) => setDeletionReason(e.target.value)}
+                rows={3}
+                placeholder="Enter a reason for deleting this stream..."
+                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              />
+            </div>
+          </div>
+        )}
+      </ConfirmDialog>
     </div>
   );
 }

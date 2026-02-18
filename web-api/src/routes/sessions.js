@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Session = require('../models/Session');
+const UserSession = require('../models/UserSession');
 const SRSApi = require('../services/srsApi');
 const { authenticate } = require('../middleware/auth');
 const { validateId } = require('../middleware/validator');
@@ -166,6 +167,80 @@ router.delete('/:id', authenticate, validateId, asyncHandler(async (req, res) =>
   res.json({
     success: true,
     message: 'Session disconnected successfully'
+  });
+}));
+
+/**
+ * GET /api/sessions/user-sessions
+ * Get current user's login sessions
+ */
+router.get('/user-sessions', authenticate, asyncHandler(async (req, res) => {
+  const sessions = UserSession.findByUserId(req.user.id, true);
+
+  // Get current session token hash
+  const token = req.headers.authorization.substring(7);
+  const crypto = require('crypto');
+  const currentTokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+  // Format sessions for response
+  const formattedSessions = sessions.map(session => ({
+    id: session.id,
+    device_info: session.device_info,
+    ip_address: session.ip_address,
+    last_activity: session.last_activity,
+    created_at: session.created_at,
+    expires_at: session.expires_at,
+    is_current: session.token_hash === currentTokenHash
+  }));
+
+  res.json({
+    success: true,
+    data: formattedSessions
+  });
+}));
+
+/**
+ * DELETE /api/sessions/user-sessions/:id
+ * Revoke a specific user session
+ */
+router.delete('/user-sessions/:id', authenticate, validateId, asyncHandler(async (req, res) => {
+  const sessionId = parseInt(req.params.id);
+
+  // Verify session belongs to current user
+  const sessions = UserSession.findByUserId(req.user.id);
+  const session = sessions.find(s => s.id === sessionId);
+
+  if (!session) {
+    return res.status(404).json({
+      success: false,
+      error: 'Session not found or does not belong to you'
+    });
+  }
+
+  // Revoke the session
+  UserSession.revokeSessionById(sessionId, req.user.id);
+
+  res.json({
+    success: true,
+    message: 'Session revoked successfully'
+  });
+}));
+
+/**
+ * DELETE /api/sessions/user-sessions
+ * Revoke all other user sessions (except current)
+ */
+router.delete('/user-sessions', authenticate, asyncHandler(async (req, res) => {
+  const token = req.headers.authorization.substring(7);
+  const crypto = require('crypto');
+  const currentTokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+  // Revoke all sessions except current
+  UserSession.revokeAllUserSessions(req.user.id, currentTokenHash);
+
+  res.json({
+    success: true,
+    message: 'All other sessions revoked successfully'
   });
 }));
 

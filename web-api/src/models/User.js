@@ -57,10 +57,24 @@ class User {
   }
 
   /**
-   * Get all users
+   * Get all users (excluding deleted by default)
    */
-  static findAll() {
-    const stmt = db.prepare('SELECT id, username, email, is_active, created_at, updated_at FROM users ORDER BY created_at DESC');
+  static findAll(includeDeleted = false) {
+    let query = `
+      SELECT u.id, u.username, u.email, u.is_active, u.role_id, u.deleted_at,
+             u.created_at, u.updated_at,
+             r.name as role_name, r.display_name as role_display_name
+      FROM users u
+      LEFT JOIN roles r ON u.role_id = r.id
+    `;
+
+    if (!includeDeleted) {
+      query += ' WHERE u.deleted_at IS NULL';
+    }
+
+    query += ' ORDER BY u.created_at DESC';
+
+    const stmt = db.prepare(query);
     return stmt.all();
   }
 
@@ -98,6 +112,94 @@ class User {
     `);
 
     return stmt.run(userId);
+  }
+
+  /**
+   * Soft delete user
+   */
+  static softDelete(userId, deletedBy, reason = null) {
+    const stmt = db.prepare(`
+      UPDATE users
+      SET deleted_at = CURRENT_TIMESTAMP, deleted_by = ?, is_active = 0
+      WHERE id = ?
+    `);
+
+    return stmt.run(deletedBy, userId);
+  }
+
+  /**
+   * Restore soft deleted user
+   */
+  static restore(userId) {
+    const stmt = db.prepare(`
+      UPDATE users
+      SET deleted_at = NULL, deleted_by = NULL, is_active = 1
+      WHERE id = ?
+    `);
+
+    return stmt.run(userId);
+  }
+
+  /**
+   * Get deleted users
+   */
+  static findDeleted() {
+    const stmt = db.prepare(`
+      SELECT u.id, u.username, u.email, u.deleted_at, u.deleted_by,
+             del.username as deleted_by_username,
+             r.name as role_name, r.display_name as role_display_name
+      FROM users u
+      LEFT JOIN users del ON u.deleted_by = del.id
+      LEFT JOIN roles r ON u.role_id = r.id
+      WHERE u.deleted_at IS NOT NULL
+      ORDER BY u.deleted_at DESC
+    `);
+
+    return stmt.all();
+  }
+
+  /**
+   * Assign role to user
+   */
+  static assignRole(userId, roleId) {
+    const stmt = db.prepare(`
+      UPDATE users
+      SET role_id = ?
+      WHERE id = ?
+    `);
+
+    return stmt.run(roleId, userId);
+  }
+
+  /**
+   * Get user with role details
+   */
+  static findByIdWithRole(userId) {
+    const stmt = db.prepare(`
+      SELECT u.*, r.name as role_name, r.display_name as role_display_name,
+             r.permissions as role_permissions
+      FROM users u
+      LEFT JOIN roles r ON u.role_id = r.id
+      WHERE u.id = ?
+    `);
+
+    return stmt.get(userId);
+  }
+
+  /**
+   * Check if user has permission
+   */
+  static hasPermission(userId, permission) {
+    const Role = require('./Role');
+    return Role.hasPermission(userId, permission);
+  }
+
+  /**
+   * Get role
+   */
+  static getRole(userId) {
+    const Role = require('./Role');
+    return Role.getUserRole(userId);
   }
 }
 

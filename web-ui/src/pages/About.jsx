@@ -361,15 +361,101 @@ export default function About() {
           )}
         </div>
 
-        <div className="mt-6 space-y-2 text-sm text-gray-600">
-          <h3 className="font-semibold text-gray-900">{t('about.roadmap')}</h3>
-          <ul className="list-disc list-inside ml-4 space-y-1">
-            <li>{t('about.roadmapItem1')}</li>
-            <li>{t('about.roadmapItem2')}</li>
-            <li>{t('about.roadmapItem3')}</li>
-            <li>{t('about.roadmapItem4')}</li>
-            <li>{t('about.roadmapItem5')}</li>
+      </div>
+
+      {/* Platform Support & Requirements */}
+      <div className="card mt-6">
+        <h2 className="text-xl font-bold mb-4">Platform Support & Hardware Requirements</h2>
+        <div className="prose max-w-none text-gray-700">
+          <p className="mb-4">
+            This livestream server is designed to run on any Linux-based system with Docker support,
+            not limited to Raspberry Pi. It supports a wide range of platforms including:
+          </p>
+
+          <h3 className="text-lg font-semibold mb-2">Supported Platforms</h3>
+          <ul className="list-disc list-inside space-y-2 ml-4 mb-4">
+            <li><strong>Linux Servers:</strong> Ubuntu, Debian, CentOS, Fedora, etc.</li>
+            <li><strong>Single Board Computers:</strong> Raspberry Pi 4/5, Orange Pi, Rock Pi, etc.</li>
+            <li><strong>Cloud VPS:</strong> AWS, DigitalOcean, Linode, Vultr, etc.</li>
+            <li><strong>Home Servers:</strong> NAS systems with Docker support</li>
+            <li><strong>Desktop/Laptop:</strong> Any Linux distribution with Docker</li>
           </ul>
+
+          <h3 className="text-lg font-semibold mb-2">Minimum Hardware Requirements</h3>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <p className="font-medium text-blue-900 mb-2">For 1-2 Concurrent Streams:</p>
+                <ul className="text-sm text-blue-800 space-y-1">
+                  <li>• CPU: 2 cores @ 1.5 GHz+</li>
+                  <li>• RAM: 2 GB minimum</li>
+                  <li>• Storage: 10 GB available</li>
+                  <li>• Network: 10 Mbps upload</li>
+                </ul>
+              </div>
+              <div>
+                <p className="font-medium text-green-900 mb-2">For 3-5 Concurrent Streams:</p>
+                <ul className="text-sm text-green-800 space-y-1">
+                  <li>• CPU: 4 cores @ 2.0 GHz+</li>
+                  <li>• RAM: 4 GB minimum</li>
+                  <li>• Storage: 20 GB available</li>
+                  <li>• Network: 25 Mbps upload</li>
+                </ul>
+              </div>
+              <div>
+                <p className="font-medium text-purple-900 mb-2">For 6-10 Concurrent Streams:</p>
+                <ul className="text-sm text-purple-800 space-y-1">
+                  <li>• CPU: 6-8 cores @ 2.5 GHz+</li>
+                  <li>• RAM: 8 GB minimum</li>
+                  <li>• Storage: 50 GB available</li>
+                  <li>• Network: 50 Mbps upload</li>
+                </ul>
+              </div>
+              <div>
+                <p className="font-medium text-orange-900 mb-2">For 10+ Concurrent Streams:</p>
+                <ul className="text-sm text-orange-800 space-y-1">
+                  <li>• CPU: 8+ cores @ 3.0 GHz+</li>
+                  <li>• RAM: 16 GB minimum</li>
+                  <li>• Storage: 100 GB available</li>
+                  <li>• Network: 100 Mbps+ upload</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <p className="text-sm text-gray-600 italic">
+            <strong>Note:</strong> These are general recommendations. Actual requirements may vary based on
+            stream quality, bitrate, protocol, and concurrent viewer count. The system automatically
+            calculates optimal stream limits based on detected hardware specifications.
+          </p>
+        </div>
+      </div>
+
+      {/* Donate Section */}
+      <div className="card mt-6 bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-300">
+        <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+          <Heart className="w-5 h-5 text-red-500 fill-red-500" />
+          Support This Project
+        </h2>
+        <div className="space-y-3 text-gray-700">
+          <p>
+            If you find this project helpful, consider supporting the development through a donation.
+            Your support helps maintain and improve the server for the Vietnamese livestream community.
+          </p>
+          <div className="bg-white border border-yellow-300 rounded-lg p-4">
+            <p className="font-semibold text-gray-900 mb-2">Bank Transfer (Vietnam):</p>
+            <div className="space-y-1 text-sm">
+              <p><strong>Bank:</strong> [Your Bank Name]</p>
+              <p><strong>Account Number:</strong> [Your Account Number]</p>
+              <p><strong>Account Name:</strong> [Your Account Name]</p>
+              <p className="text-gray-600 italic mt-2">
+                Please include "Livestream Server Support" in the transfer note.
+              </p>
+            </div>
+          </div>
+          <p className="text-sm text-gray-600 italic">
+            Thank you for your support! Every contribution helps keep this project alive and improving.
+          </p>
         </div>
       </div>
 
@@ -388,10 +474,15 @@ export default function About() {
               <Mail className="w-4 h-4" />
               {t('about.emailSupport')}
             </a>
-            <button className="btn-secondary flex items-center justify-center gap-2">
+            <a
+              href="https://github.com/nyonnguyen/livestream-server"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-secondary flex items-center justify-center gap-2"
+            >
               <Github className="w-4 h-4" />
-              {t('about.githubSoon')}
-            </button>
+              GitHub Repository
+            </a>
           </div>
           <p className="text-sm text-gray-600 italic mt-3">
             {t('about.tagline')}
@@ -402,7 +493,7 @@ export default function About() {
       {/* Footer */}
       <div className="text-center text-gray-500 text-sm mt-8 pb-8">
         <p>{t('about.footer')}</p>
-        <p className="mt-1">{t('about.footerLove')}</p>
+        <p className="mt-1">Made with ❤️ for the VN Livestream Community</p>
       </div>
 
       {/* Update Confirmation Modal */}

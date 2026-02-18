@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { configAPI, streamsAPI, sessionsAPI } from '../services/api';
-import { Radio, Activity, Server, AlertCircle, TrendingUp } from 'lucide-react';
+import { Radio, Activity, Server, AlertCircle, TrendingUp, Cpu, HardDrive, Thermometer, Network } from 'lucide-react';
+import axios from 'axios';
 
 export default function Dashboard() {
   const { t } = useTranslation();
@@ -10,6 +11,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [streams, setStreams] = useState([]);
   const [sessions, setSessions] = useState([]);
+  const [systemHealth, setSystemHealth] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -20,17 +22,25 @@ export default function Dashboard() {
 
   const fetchData = async () => {
     try {
-      const [healthRes, statsRes, streamsRes, sessionsRes] = await Promise.all([
+      const token = localStorage.getItem('token');
+      const [healthRes, statsRes, streamsRes, sessionsRes, systemHealthRes] = await Promise.all([
         configAPI.health(),
         configAPI.stats(),
         streamsAPI.getAll({ is_active: true }),
         sessionsAPI.getAll(),
+        axios.get('/api/system/health', {
+          headers: { Authorization: `Bearer ${token}` }
+        }).catch(err => {
+          console.error('Failed to fetch system health:', err);
+          return { data: { data: null } };
+        })
       ]);
 
       setHealth(healthRes.data.data);
       setStats(statsRes.data.data);
       setStreams(streamsRes.data.data);
       setSessions(sessionsRes.data.data);
+      setSystemHealth(systemHealthRes.data.data);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -204,6 +214,157 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Host System Monitoring */}
+      {systemHealth && (
+        <div className="mt-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Host System Performance</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* CPU Usage */}
+            <div className="card">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center">
+                  <Cpu className="w-5 h-5 text-blue-600 mr-2" />
+                  <h3 className="font-semibold text-gray-900">CPU</h3>
+                </div>
+                <span className="text-2xl font-bold text-gray-900">{systemHealth.cpu.usage}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
+                <div
+                  className={`h-2.5 rounded-full transition-all ${
+                    systemHealth.cpu.usage > 80 ? 'bg-red-600' :
+                    systemHealth.cpu.usage > 60 ? 'bg-yellow-600' : 'bg-green-600'
+                  }`}
+                  style={{ width: `${systemHealth.cpu.usage}%` }}
+                ></div>
+              </div>
+              <p className="text-xs text-gray-500">{systemHealth.cpu.cores} cores @ {systemHealth.cpu.speed} MHz</p>
+            </div>
+
+            {/* Memory Usage */}
+            <div className="card">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center">
+                  <Server className="w-5 h-5 text-purple-600 mr-2" />
+                  <h3 className="font-semibold text-gray-900">Memory</h3>
+                </div>
+                <span className="text-2xl font-bold text-gray-900">{systemHealth.memory.usage.toFixed(0)}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
+                <div
+                  className={`h-2.5 rounded-full transition-all ${
+                    systemHealth.memory.usage > 80 ? 'bg-red-600' :
+                    systemHealth.memory.usage > 60 ? 'bg-yellow-600' : 'bg-purple-600'
+                  }`}
+                  style={{ width: `${systemHealth.memory.usage}%` }}
+                ></div>
+              </div>
+              <p className="text-xs text-gray-500">{systemHealth.memory.usedGB} GB / {systemHealth.memory.totalGB} GB</p>
+            </div>
+
+            {/* Disk Usage */}
+            <div className="card">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center">
+                  <HardDrive className="w-5 h-5 text-orange-600 mr-2" />
+                  <h3 className="font-semibold text-gray-900">Disk</h3>
+                </div>
+                <span className="text-2xl font-bold text-gray-900">{systemHealth.disk.usage}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
+                <div
+                  className={`h-2.5 rounded-full transition-all ${
+                    systemHealth.disk.usage > 80 ? 'bg-red-600' :
+                    systemHealth.disk.usage > 60 ? 'bg-yellow-600' : 'bg-orange-600'
+                  }`}
+                  style={{ width: `${systemHealth.disk.usage}%` }}
+                ></div>
+              </div>
+              <p className="text-xs text-gray-500">{systemHealth.disk.used} / {systemHealth.disk.total}</p>
+            </div>
+
+            {/* Temperature */}
+            <div className="card">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center">
+                  <Thermometer className="w-5 h-5 text-red-600 mr-2" />
+                  <h3 className="font-semibold text-gray-900">Temperature</h3>
+                </div>
+                <span className="text-2xl font-bold text-gray-900">
+                  {systemHealth.temperature.celsius !== 'N/A' ? `${systemHealth.temperature.celsius}°C` : 'N/A'}
+                </span>
+              </div>
+              {systemHealth.temperature.celsius !== 'N/A' && (
+                <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
+                  <div
+                    className={`h-2.5 rounded-full transition-all ${
+                      parseFloat(systemHealth.temperature.celsius) > 70 ? 'bg-red-600' :
+                      parseFloat(systemHealth.temperature.celsius) > 60 ? 'bg-yellow-600' : 'bg-green-600'
+                    }`}
+                    style={{ width: `${Math.min(100, (parseFloat(systemHealth.temperature.celsius) / 80) * 100)}%` }}
+                  ></div>
+                </div>
+              )}
+              <p className="text-xs text-gray-500">
+                {systemHealth.temperature.fahrenheit !== 'N/A' ? `${systemHealth.temperature.fahrenheit}°F` : 'Not available'}
+              </p>
+            </div>
+          </div>
+
+          {/* System Info Row */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+            {/* Uptime */}
+            <div className="card">
+              <h3 className="font-semibold text-gray-900 mb-2">System Uptime</h3>
+              <p className="text-2xl font-bold text-blue-600">{systemHealth.uptime.formatted}</p>
+              <p className="text-xs text-gray-500 mt-1">
+                {systemHealth.uptime.days} days, {systemHealth.uptime.hours} hours
+              </p>
+            </div>
+
+            {/* Load Average */}
+            <div className="card">
+              <h3 className="font-semibold text-gray-900 mb-2">Load Average</h3>
+              <div className="flex items-center justify-between text-sm">
+                <div>
+                  <p className="text-gray-600">1 min</p>
+                  <p className="font-bold text-gray-900">{systemHealth.load['1min']}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600">5 min</p>
+                  <p className="font-bold text-gray-900">{systemHealth.load['5min']}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600">15 min</p>
+                  <p className="font-bold text-gray-900">{systemHealth.load['15min']}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Network */}
+            <div className="card">
+              <div className="flex items-center mb-2">
+                <Network className="w-5 h-5 text-green-600 mr-2" />
+                <h3 className="font-semibold text-gray-900">Network</h3>
+              </div>
+              {systemHealth.network.length > 0 ? (
+                <div className="space-y-1">
+                  {systemHealth.network.slice(0, 2).map((iface, idx) => (
+                    <div key={idx} className="text-xs">
+                      <p className="font-medium text-gray-700">{iface.interface}: {iface.address}</p>
+                      <p className="text-gray-500">
+                        ↓ {iface.rxGB} GB / ↑ {iface.txGB} GB
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500">No network data available</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
