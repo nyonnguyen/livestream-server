@@ -1,4 +1,4 @@
-import { useTranslation } from 'react-i18n';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Badge component to display user roles with color coding
