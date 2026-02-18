@@ -10,8 +10,15 @@ export default function MobileStream() {
   const [error, setError] = useState(null);
   const [serverIp, setServerIp] = useState(window.location.hostname);
 
+  // Generate URLs based on stream protocol
+  const streamProtocol = stream?.protocol || 'rtmp';
   const rtmpUrl = `rtmp://${serverIp}:1935/live/${streamKey}`;
+  const srtPublishUrl = `srt://${serverIp}:1935?streamid=#!::r=${streamKey},m=publish`;
+  const srtPlayUrl = `srt://${serverIp}:1935?streamid=#!::r=${streamKey},m=request`;
   const playbackUrl = `http://${serverIp}:8080/live/${streamKey}.flv`;
+
+  // Determine which URL to auto-copy based on protocol
+  const primaryUrl = streamProtocol === 'srt' ? srtPublishUrl : rtmpUrl;
 
   useEffect(() => {
     // Fetch server IP first
@@ -62,9 +69,9 @@ export default function MobileStream() {
     }
   };
 
-  const copyToClipboard = async () => {
+  const copyToClipboard = async (url = primaryUrl) => {
     try {
-      await navigator.clipboard.writeText(rtmpUrl);
+      await navigator.clipboard.writeText(url);
       setCopied(true);
       setTimeout(() => setCopied(false), 3000);
     } catch (err) {
@@ -110,30 +117,65 @@ export default function MobileStream() {
           </div>
           <p className="text-sm text-center text-gray-600">
             {copied
-              ? 'RTMP URL has been copied. Paste it in your streaming app!'
-              : 'Click the copy button below to get the RTMP URL'
+              ? `${streamProtocol === 'srt' ? 'SRT' : 'RTMP'} URL has been copied. Paste it in your streaming app!`
+              : `Click the copy button below to get the ${streamProtocol === 'srt' ? 'SRT' : 'RTMP'} URL`
             }
           </p>
         </div>
 
-        {/* RTMP URL */}
-        <div className="mb-6">
-          <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">
-            RTMP Server URL
-          </label>
-          <div className="bg-gray-900 rounded-lg p-4 mb-3">
-            <code className="text-sm text-green-400 font-mono break-all">
-              {rtmpUrl}
-            </code>
+        {/* RTMP URL - show when protocol is rtmp or both */}
+        {(streamProtocol === 'rtmp' || streamProtocol === 'both') && (
+          <div className="mb-6">
+            <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">
+              RTMP Server URL
+            </label>
+            <div className="bg-gray-900 rounded-lg p-4 mb-3">
+              <code className="text-sm text-green-400 font-mono break-all">
+                {rtmpUrl}
+              </code>
+            </div>
+            <button
+              onClick={() => copyToClipboard(rtmpUrl)}
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-4 rounded-lg flex items-center justify-center transition-colors"
+            >
+              <Copy className="w-5 h-5 mr-2" />
+              {copied ? 'Copied!' : 'Copy RTMP URL'}
+            </button>
           </div>
-          <button
-            onClick={copyToClipboard}
-            className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-4 rounded-lg flex items-center justify-center transition-colors"
-          >
-            <Copy className="w-5 h-5 mr-2" />
-            {copied ? 'Copied!' : 'Copy RTMP URL'}
-          </button>
-        </div>
+        )}
+
+        {/* SRT URLs - show when protocol is srt or both */}
+        {(streamProtocol === 'srt' || streamProtocol === 'both') && (
+          <div className="mb-6 space-y-4">
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">
+                SRT Publish URL
+              </label>
+              <div className="bg-gray-900 rounded-lg p-4 mb-3">
+                <code className="text-sm text-green-400 font-mono break-all">
+                  {srtPublishUrl}
+                </code>
+              </div>
+              <button
+                onClick={() => copyToClipboard(srtPublishUrl)}
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-lg flex items-center justify-center transition-colors"
+              >
+                <Copy className="w-5 h-5 mr-2" />
+                Copy SRT Publish URL
+              </button>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">
+                SRT Playback URL
+              </label>
+              <div className="bg-gray-900 rounded-lg p-4">
+                <code className="text-sm text-blue-400 font-mono break-all">
+                  {srtPlayUrl}
+                </code>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Instructions */}
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 mb-6">
