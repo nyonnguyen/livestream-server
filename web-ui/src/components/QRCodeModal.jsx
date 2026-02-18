@@ -176,209 +176,132 @@ export default function QRCodeModal({ stream, onClose }) {
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Simplified centered layout */}
+        <div className="flex flex-col items-center text-center">
+          {/* Stream Name */}
+          <h3 className="text-2xl font-bold text-gray-900 mb-4">{stream.name}</h3>
+
           {/* QR Code */}
-          <div className="flex flex-col items-center">
-            <div className="bg-white p-4 rounded-lg border-2 border-gray-200 mb-4">
-              <QRCodeSVG
-                id="qr-code-svg"
-                value={mobileUrl}
-                size={200}
-                level="H"
-                includeMargin={true}
-              />
-            </div>
-            <div className="text-center space-y-2">
-              <p className="text-xs text-gray-600">
-                Scan with phone camera to auto-copy {streamProtocol === 'srt' ? 'SRT' : 'RTMP'} URL
-              </p>
-              <div className="flex flex-col items-center gap-2">
-                <div className="flex justify-center">
-                  {selectedMode === 'public' ? (
-                    <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full font-medium">
-                      🌐 Public IP Mode
-                    </span>
-                  ) : (
-                    <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full font-medium">
-                      🏠 LAN IP Mode
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-gray-500 font-mono">
-                  Using: {activeIp}
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={handleDownloadQR}
-              className="btn-secondary flex items-center text-sm mt-2"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Download QR Code
-            </button>
+          <div className="bg-white p-6 rounded-lg border-2 border-gray-200 mb-4">
+            <QRCodeSVG
+              id="qr-code-svg"
+              value={mobileUrl}
+              size={240}
+              level="H"
+              includeMargin={true}
+            />
           </div>
 
-          {/* Instructions */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">
-              {stream.name}
-            </h3>
+          {/* Mode indicator */}
+          <div className="mb-4">
+            {selectedMode === 'public' ? (
+              <span className="px-3 py-1.5 bg-green-100 text-green-800 text-sm rounded-full font-medium">
+                🌐 Using: {activeIp}
+              </span>
+            ) : (
+              <span className="px-3 py-1.5 bg-blue-100 text-blue-800 text-sm rounded-full font-medium">
+                🏠 Using: {activeIp}
+              </span>
+            )}
+          </div>
 
-            <div className="space-y-4">
-              {/* RTMP URL - show when protocol is rtmp or both */}
-              {(streamProtocol === 'rtmp' || streamProtocol === 'both') && (
-                <div>
-                  <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
-                    RTMP URL
-                  </label>
-                  <div className="mt-1 flex gap-2">
-                    <div className="flex-1 p-2 bg-gray-50 rounded text-sm font-mono break-all">
-                      {rtmpUrl}
-                    </div>
-                    <button
-                      onClick={() => copyToClipboard(rtmpUrl, 'RTMP URL')}
-                      className="px-3 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 flex items-center gap-1 whitespace-nowrap"
-                      title="Copy RTMP URL"
-                    >
-                      <Copy className="w-4 h-4" />
-                      <span className="text-xs">Copy</span>
-                    </button>
-                  </div>
-                </div>
-              )}
+          {/* Simple instructions */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-md mb-4">
+            <p className="font-semibold text-blue-900 mb-2">📱 How to use:</p>
+            <ol className="text-sm text-blue-800 text-left space-y-1">
+              <li>1. Scan QR code with phone camera</li>
+              <li>2. Tap the notification</li>
+              <li>3. URL auto-copies to clipboard</li>
+              <li>4. Paste in streaming app (Larix, prism, etc.)</li>
+            </ol>
+          </div>
 
-              {/* SRT Publish URL - show when protocol is srt or both */}
-              {(streamProtocol === 'srt' || streamProtocol === 'both') && (
-                <div>
-                  <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
-                    SRT Publish URL
-                  </label>
-                  <div className="mt-1 flex gap-2">
-                    <div className="flex-1 p-2 bg-gray-50 rounded text-sm font-mono break-all">
-                      {srtPublishUrl}
-                    </div>
-                    <button
-                      onClick={() => copyToClipboard(srtPublishUrl, 'SRT Publish URL')}
-                      className="px-3 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 flex items-center gap-1 whitespace-nowrap"
-                      title="Copy SRT Publish URL"
-                    >
-                      <Copy className="w-4 h-4" />
-                      <span className="text-xs">Copy</span>
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* SRT Playback URL - show when protocol is srt or both */}
-              {(streamProtocol === 'srt' || streamProtocol === 'both') && (
-                <div>
-                  <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
-                    SRT Playback URL
-                  </label>
-                  <div className="mt-1 flex gap-2">
-                    <div className="flex-1 p-2 bg-gray-50 rounded text-sm font-mono break-all">
-                      {srtPlayUrl}
-                    </div>
-                    <button
-                      onClick={() => copyToClipboard(srtPlayUrl, 'SRT Playback URL')}
-                      className="px-3 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 flex items-center gap-1 whitespace-nowrap"
-                      title="Copy SRT Playback URL"
-                    >
-                      <Copy className="w-4 h-4" />
-                      <span className="text-xs">Copy</span>
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* HTTP-FLV Playback URL - always show */}
-              <div>
-                <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
-                  HTTP-FLV Playback URL
-                </label>
-                <div className="mt-1 flex gap-2">
-                  <div className="flex-1 p-2 bg-gray-50 rounded text-sm font-mono break-all">
-                    {playbackUrl}
-                  </div>
-                  <button
-                    onClick={() => copyToClipboard(playbackUrl, 'Playback URL')}
-                    className="px-3 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 flex items-center gap-1 whitespace-nowrap"
-                    title="Copy Playback URL"
-                  >
-                    <Copy className="w-4 h-4" />
-                    <span className="text-xs">Copy</span>
-                  </button>
-                </div>
+          {/* Primary URL with large copy button */}
+          <div className="w-full max-w-2xl mb-4">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              {streamProtocol === 'srt' ? 'SRT Publish URL:' : 'RTMP URL:'}
+            </label>
+            <div className="flex gap-2">
+              <div className="flex-1 p-3 bg-gray-100 rounded-lg border border-gray-300">
+                <p className="text-base font-mono break-all text-gray-900">
+                  {streamProtocol === 'srt' ? srtPublishUrl : rtmpUrl}
+                </p>
               </div>
-
-              {/* Instructions */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h4 className="font-semibold text-blue-900 mb-2 text-sm">
-                  📱 Two ways to use the QR code:
-                </h4>
-                <div className="space-y-3 text-sm text-blue-800">
-                  <div>
-                    <p className="font-semibold mb-1">Option 1: Phone Camera (Easiest)</p>
-                    <ol className="list-decimal list-inside space-y-1 ml-2">
-                      <li>Open phone camera and scan QR code</li>
-                      <li>Tap the notification to open the link</li>
-                      <li>RTMP URL auto-copies to clipboard</li>
-                      <li>Paste in your streaming app</li>
-                    </ol>
-                  </div>
-                  <div>
-                    <p className="font-semibold mb-1">Option 2: Streaming App Scanner</p>
-                    <ol className="list-decimal list-inside space-y-1 ml-2">
-                      <li>Open Larix/prism/other streaming app</li>
-                      <li>Go to Settings → Scan QR Code</li>
-                      <li>Scan the QR code above</li>
-                    </ol>
-                  </div>
-                </div>
-              </div>
-
-              {/* Manual Setup */}
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                <h4 className="font-semibold text-gray-900 mb-2 text-sm">
-                  ⚙️ Manual setup (if QR doesn't work):
-                </h4>
-                <div className="text-sm text-gray-700 space-y-1">
-                  {(streamProtocol === 'rtmp' || streamProtocol === 'both') && (
-                    <>
-                      <p><strong>RTMP Server:</strong> rtmp://{activeIp}:1935/live</p>
-                      <p><strong>Stream Key:</strong> {stream.stream_key}</p>
-                    </>
-                  )}
-                  {(streamProtocol === 'srt' || streamProtocol === 'both') && streamProtocol !== 'rtmp' && (
-                    <>
-                      <p><strong>SRT URL:</strong> srt://{activeIp}:1935</p>
-                      <p><strong>Stream ID:</strong> #!::r={stream.stream_key},m=publish</p>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {/* Supported Apps */}
-              <div>
-                <label className="text-xs font-medium text-gray-600 uppercase tracking-wide mb-2 block">
-                  Supported Apps
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
-                    Larix Broadcaster
-                  </span>
-                  <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
-                    prism live studio
-                  </span>
-                  <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
-                    CameraFi Live
-                  </span>
-                  <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
-                    Streamlabs
-                  </span>
-                </div>
-              </div>
+              <button
+                onClick={() => copyToClipboard(
+                  streamProtocol === 'srt' ? srtPublishUrl : rtmpUrl,
+                  streamProtocol === 'srt' ? 'SRT URL' : 'RTMP URL'
+                )}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold flex items-center gap-2 whitespace-nowrap"
+              >
+                <Copy className="w-5 h-5" />
+                Copy
+              </button>
             </div>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex gap-3">
+            <button
+              onClick={handleDownloadQR}
+              className="btn-secondary flex items-center"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Download QR
+            </button>
+
+            {/* Show more details toggle */}
+            <details className="inline-block">
+              <summary className="btn-secondary cursor-pointer">
+                More Info
+              </summary>
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200 text-left max-w-2xl">
+                <div className="space-y-3">
+                  {/* All URLs */}
+                  {(streamProtocol === 'rtmp' || streamProtocol === 'both') && (
+                    <div>
+                      <p className="text-xs font-semibold text-gray-700">RTMP URL:</p>
+                      <p className="text-xs font-mono text-gray-600 break-all">{rtmpUrl}</p>
+                    </div>
+                  )}
+                  {(streamProtocol === 'srt' || streamProtocol === 'both') && (
+                    <>
+                      <div>
+                        <p className="text-xs font-semibold text-gray-700">SRT Publish:</p>
+                        <p className="text-xs font-mono text-gray-600 break-all">{srtPublishUrl}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-gray-700">SRT Playback:</p>
+                        <p className="text-xs font-mono text-gray-600 break-all">{srtPlayUrl}</p>
+                      </div>
+                    </>
+                  )}
+                  <div>
+                    <p className="text-xs font-semibold text-gray-700">HTTP-FLV Playback:</p>
+                    <p className="text-xs font-mono text-gray-600 break-all">{playbackUrl}</p>
+                  </div>
+
+                  {/* Manual Setup */}
+                  <div className="pt-3 border-t border-gray-300">
+                    <p className="text-xs font-semibold text-gray-700 mb-2">⚙️ Manual Setup:</p>
+                    <div className="text-xs text-gray-600 space-y-1">
+                      {(streamProtocol === 'rtmp' || streamProtocol === 'both') && (
+                        <>
+                          <p><strong>Server:</strong> rtmp://{activeIp}:1935/live</p>
+                          <p><strong>Key:</strong> {stream.stream_key}</p>
+                        </>
+                      )}
+                      {(streamProtocol === 'srt' || streamProtocol === 'both') && streamProtocol !== 'rtmp' && (
+                        <>
+                          <p><strong>SRT URL:</strong> srt://{activeIp}:1935</p>
+                          <p><strong>Stream ID:</strong> #!::r={stream.stream_key},m=publish</p>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </details>
           </div>
         </div>
 
