@@ -27,7 +27,19 @@ router.post('/update', authenticate, asyncHandler(async (req, res) => {
   try {
     // Use nsenter to execute update script on HOST system
     // This enters the host's namespaces (PID 1 = host init process)
-    const command = `nsenter --target 1 --mount --uts --ipc --net --pid -- /bin/bash ${hostUpdateScriptPath} > ${updateLogPath} 2>&1 &`;
+    // Try multiple possible shell locations for compatibility with different Linux distributions
+    const command = `nsenter --target 1 --mount --uts --ipc --net --pid -- sh -c '
+      if [ -x /bin/bash ]; then
+        /bin/bash ${hostUpdateScriptPath}
+      elif [ -x /usr/bin/bash ]; then
+        /usr/bin/bash ${hostUpdateScriptPath}
+      elif [ -x /bin/sh ]; then
+        /bin/sh ${hostUpdateScriptPath}
+      else
+        echo "ERROR: No shell found on host system" >&2
+        exit 1
+      fi
+    ' > ${updateLogPath} 2>&1 &`;
 
     execSync(command);
 
