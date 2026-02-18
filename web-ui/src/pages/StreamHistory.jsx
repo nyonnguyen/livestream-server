@@ -2,12 +2,12 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import {
-  ClockIcon,
-  ArrowPathIcon,
-  TrashIcon,
-  ChevronDownIcon,
-  ChevronUpIcon
-} from '@heroicons/react/24/outline';
+  Clock,
+  RotateCw,
+  Trash2,
+  ChevronDown,
+  ChevronUp
+} from 'lucide-react';
 import ConfirmDialog from '../components/ConfirmDialog';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
@@ -232,7 +232,7 @@ const StreamHistory = () => {
           </div>
         ) : deletedStreams.length === 0 ? (
           <div className="text-center py-12 px-4">
-            <TrashIcon className="mx-auto h-12 w-12 text-gray-400" />
+            <Trash2 className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-2 text-sm font-medium text-gray-900">No deleted streams</h3>
             <p className="mt-1 text-sm text-gray-500">All streams are active</p>
           </div>
@@ -248,7 +248,7 @@ const StreamHistory = () => {
                           {stream.name}
                         </h3>
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getTimeRemainingColor(stream.deleted_at)}`}>
-                          <ClockIcon className="h-4 w-4 mr-1" />
+                          <Clock className="h-4 w-4 mr-1" />
                           {calculateTimeRemaining(stream.deleted_at)}
                         </span>
                       </div>
@@ -293,12 +293,12 @@ const StreamHistory = () => {
                       >
                         {expandedStream === stream.id ? (
                           <>
-                            <ChevronUpIcon className="h-4 w-4 mr-1" />
+                            <ChevronUp className="h-4 w-4 mr-1" />
                             Hide History
                           </>
                         ) : (
                           <>
-                            <ChevronDownIcon className="h-4 w-4 mr-1" />
+                            <ChevronDown className="h-4 w-4 mr-1" />
                             View History
                           </>
                         )}
@@ -310,7 +310,7 @@ const StreamHistory = () => {
                           disabled={restoring === stream.id}
                           className="inline-flex items-center px-3 py-2 border border-green-300 shadow-sm text-sm leading-4 font-medium rounded-md text-green-700 bg-white hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
                         >
-                          <ArrowPathIcon className="h-4 w-4 mr-1" />
+                          <RotateCw className="h-4 w-4 mr-1" />
                           {restoring === stream.id ? 'Restoring...' : 'Restore'}
                         </button>
                       )}
@@ -321,7 +321,7 @@ const StreamHistory = () => {
                           disabled={deleting === stream.id}
                           className="inline-flex items-center px-3 py-2 border border-red-300 shadow-sm text-sm leading-4 font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
                         >
-                          <TrashIcon className="h-4 w-4 mr-1" />
+                          <Trash2 className="h-4 w-4 mr-1" />
                           {deleting === stream.id ? 'Deleting...' : 'Delete Forever'}
                         </button>
                       )}
