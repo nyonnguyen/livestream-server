@@ -40,9 +40,26 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false
 }));
 
-// CORS
+// CORS - Dynamic origin to support credentials
+// When credentials: true, origin cannot be '*' (wildcard)
+// Use function to return request origin, which satisfies CORS spec
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || '*',
+  origin: function(origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+
+    // If CORS_ORIGIN is set, only allow that specific origin
+    if (process.env.CORS_ORIGIN && process.env.CORS_ORIGIN !== '*') {
+      if (origin === process.env.CORS_ORIGIN) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    } else {
+      // Allow any origin (development mode)
+      callback(null, origin);
+    }
+  },
   credentials: true
 }));
 
