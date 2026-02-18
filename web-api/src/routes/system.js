@@ -21,7 +21,7 @@ router.post('/update', authenticate, asyncHandler(async (req, res) => {
   try {
     // Use nsenter to execute update script on HOST system
     // This enters the host's namespaces (PID 1 = host init process)
-    const command = `nsenter --target 1 --mount --uts --ipc --net --pid bash ${hostUpdateScriptPath} > ${updateLogPath} 2>&1 &`;
+    const command = `nsenter --target 1 --mount --uts --ipc --net --pid -- bash ${hostUpdateScriptPath} > ${updateLogPath} 2>&1 &`;
 
     execSync(command);
 
