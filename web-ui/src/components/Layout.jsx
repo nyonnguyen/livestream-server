@@ -48,11 +48,11 @@ export default function Layout({ children }) {
   const navigation = [
     { name: t('nav.dashboard') || 'Dashboard', href: '/', icon: LayoutDashboard },
     { name: t('nav.streams') || 'Streams', href: '/streams', icon: Radio },
-    // { name: 'Stream History', href: '/streams/history', icon: History, permission: 'streams:read' }, // TODO: v2.0.0
+    { name: 'Stream History', href: '/streams/history', icon: History, permission: 'streams:read' },
     { name: t('nav.sessions') || 'Sessions', href: '/sessions', icon: Activity },
-    // { name: 'My Sessions', href: '/sessions/manage', icon: Shield }, // TODO: v2.0.0
-    // { name: 'Users', href: '/users', icon: Users, permission: 'users:read', adminOnly: true }, // TODO: v2.0.0
-    // { name: 'Audit Log', href: '/audit', icon: FileText, permission: 'audit:read', adminOnly: true }, // TODO: v2.0.0
+    { name: 'My Sessions', href: '/sessions/manage', icon: Shield },
+    { name: 'Users', href: '/users', icon: Users, permission: 'users:read', adminOnly: true },
+    { name: 'Audit Log', href: '/audit', icon: FileText, permission: 'audit:read', adminOnly: true },
     { name: t('nav.settings') || 'Settings', href: '/settings', icon: Settings },
     { name: t('nav.help') || 'Help', href: '/help', icon: HelpCircle },
     { name: 'Report Bug', href: '/bug-report', icon: Bug },
