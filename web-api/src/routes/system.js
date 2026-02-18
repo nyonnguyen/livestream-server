@@ -21,25 +21,15 @@ const execAsync = promisify(exec);
 router.post('/update', authenticate, asyncHandler(async (req, res) => {
   const updateLogPath = '/tmp/livestream-update.log';
 
-  // Update script path on HOST filesystem (not container)
-  const hostUpdateScriptPath = '/opt/livestream-server/scripts/update.sh';
+  // Update script is mounted from host at /host_scripts/update.sh in the container
+  // We'll execute it directly without nsenter since we need host access for git/docker commands
+  const containerScriptPath = '/host_scripts/update.sh';
 
   try {
-    // Use nsenter to execute update script on HOST system
-    // This enters the host's namespaces (PID 1 = host init process)
-    // Try multiple possible shell locations for compatibility with different Linux distributions
-    const command = `nsenter --target 1 --mount --uts --ipc --net --pid -- sh -c '
-      if [ -x /bin/bash ]; then
-        /bin/bash ${hostUpdateScriptPath}
-      elif [ -x /usr/bin/bash ]; then
-        /usr/bin/bash ${hostUpdateScriptPath}
-      elif [ -x /bin/sh ]; then
-        /bin/sh ${hostUpdateScriptPath}
-      else
-        echo "ERROR: No shell found on host system" >&2
-        exit 1
-      fi
-    ' > ${updateLogPath} 2>&1 &`;
+    // Execute the update script directly in the background from the mounted host project directory
+    // The script will run git commands and docker compose via mounted socket
+    // We pass the project directory location as it's mounted at /host_project
+    const command = `cd /host_project && sh ${containerScriptPath} > ${updateLogPath} 2>&1 &`;
 
     execSync(command);
 

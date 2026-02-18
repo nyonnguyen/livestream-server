@@ -24,7 +24,11 @@ warn() {
 }
 
 # Determine the installation directory
-if [ -d "/opt/livestream-server" ]; then
+# If running in container, use current directory (which should be /host_project mounted from host)
+if [ -f "/.dockerenv" ] || [ -d "/host_project" ]; then
+    INSTALL_DIR="$(pwd)"
+    log "Detected container environment, using current directory"
+elif [ -d "/opt/livestream-server" ]; then
     INSTALL_DIR="/opt/livestream-server"
 elif [ -d "$HOME/livestream-server" ]; then
     INSTALL_DIR="$HOME/livestream-server"
