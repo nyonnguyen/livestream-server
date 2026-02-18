@@ -476,49 +476,28 @@ export default function Streams() {
 
                         <div className="space-y-4">
                           {/* RTMP Protocol */}
-                          <div>
-                            <div className="flex items-center mb-2">
-                              <span className="px-2 py-0.5 bg-purple-100 text-purple-800 text-xs rounded font-medium mr-2">
-                                {t('streams.rtmp')}
-                              </span>
-                              <span className="text-xs text-gray-500">{t('streams.rtmpNote')}</span>
-                            </div>
-
-                            {/* LAN RTMP */}
-                            <div className="mb-2">
-                              <div className="flex items-center mb-1">
-                                <span className="px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full font-medium">
-                                  {t('streams.lan')}
+                          {(stream.protocol === 'rtmp' || stream.protocol === 'both') && (
+                            <div>
+                              <div className="flex items-center mb-2">
+                                <span className="px-2 py-0.5 bg-purple-100 text-purple-800 text-xs rounded font-medium mr-2">
+                                  {t('streams.rtmp')}
                                 </span>
+                                <span className="text-xs text-gray-500">{t('streams.rtmpNote')}</span>
                               </div>
-                              <div className="flex items-center">
-                                <code className="flex-1 px-2 py-1.5 bg-gray-50 rounded text-xs font-mono overflow-x-auto">
-                                  {getRtmpUrl(stream.stream_key, serverIp)}
-                                </code>
-                                <button
-                                  onClick={() => copyToClipboard(getRtmpUrl(stream.stream_key, serverIp))}
-                                  className="ml-1 p-1.5 text-gray-600 hover:text-gray-900"
-                                  title={t('streams.copy')}
-                                >
-                                  <Copy className="w-4 h-4" />
-                                </button>
-                              </div>
-                            </div>
 
-                            {/* Public RTMP */}
-                            {getPublicAddress() && (
-                              <div>
+                              {/* LAN RTMP */}
+                              <div className="mb-2">
                                 <div className="flex items-center mb-1">
-                                  <span className="px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full font-medium">
-                                    {t('streams.public')}
+                                  <span className="px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full font-medium">
+                                    {t('streams.lan')}
                                   </span>
                                 </div>
                                 <div className="flex items-center">
                                   <code className="flex-1 px-2 py-1.5 bg-gray-50 rounded text-xs font-mono overflow-x-auto">
-                                    {getRtmpUrl(stream.stream_key, getPublicAddress())}
+                                    {getRtmpUrl(stream.stream_key, serverIp)}
                                   </code>
                                   <button
-                                    onClick={() => copyToClipboard(getRtmpUrl(stream.stream_key, getPublicAddress()))}
+                                    onClick={() => copyToClipboard(getRtmpUrl(stream.stream_key, serverIp))}
                                     className="ml-1 p-1.5 text-gray-600 hover:text-gray-900"
                                     title={t('streams.copy')}
                                   >
@@ -526,11 +505,35 @@ export default function Streams() {
                                   </button>
                                 </div>
                               </div>
-                            )}
-                          </div>
+
+                              {/* Public RTMP */}
+                              {getPublicAddress() && (
+                                <div>
+                                  <div className="flex items-center mb-1">
+                                    <span className="px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full font-medium">
+                                      {t('streams.public')}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center">
+                                    <code className="flex-1 px-2 py-1.5 bg-gray-50 rounded text-xs font-mono overflow-x-auto">
+                                      {getRtmpUrl(stream.stream_key, getPublicAddress())}
+                                    </code>
+                                    <button
+                                      onClick={() => copyToClipboard(getRtmpUrl(stream.stream_key, getPublicAddress()))}
+                                      className="ml-1 p-1.5 text-gray-600 hover:text-gray-900"
+                                      title={t('streams.copy')}
+                                    >
+                                      <Copy className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
 
                           {/* SRT Protocol */}
-                          <div>
+                          {(stream.protocol === 'srt' || stream.protocol === 'both') && (
+                            <div>
                             <div className="flex items-center mb-2">
                               <span className="px-2 py-0.5 bg-indigo-100 text-indigo-800 text-xs rounded font-medium mr-2">
                                 {t('streams.srt')}
@@ -581,7 +584,8 @@ export default function Streams() {
                                 </div>
                               </div>
                             )}
-                          </div>
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -647,49 +651,28 @@ export default function Streams() {
                           </div>
 
                           {/* SRT Protocol */}
-                          <div>
-                            <div className="flex items-center mb-2">
-                              <span className="px-2 py-0.5 bg-indigo-100 text-indigo-800 text-xs rounded font-medium mr-2">
-                                {t('streams.srt')}
-                              </span>
-                              <span className="text-xs text-gray-500">{t('streams.srtPlayNote')}</span>
-                            </div>
-
-                            {/* LAN SRT */}
-                            <div className="mb-2">
-                              <div className="flex items-center mb-1">
-                                <span className="px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full font-medium">
-                                  {t('streams.lan')}
+                          {(stream.protocol === 'srt' || stream.protocol === 'both') && (
+                            <div>
+                              <div className="flex items-center mb-2">
+                                <span className="px-2 py-0.5 bg-indigo-100 text-indigo-800 text-xs rounded font-medium mr-2">
+                                  {t('streams.srt')}
                                 </span>
+                                <span className="text-xs text-gray-500">{t('streams.srtPlayNote')}</span>
                               </div>
-                              <div className="flex items-center">
-                                <code className="flex-1 px-2 py-1.5 bg-gray-50 rounded text-xs font-mono overflow-x-auto">
-                                  {getSrtPlayUrl(stream.stream_key, serverIp)}
-                                </code>
-                                <button
-                                  onClick={() => copyToClipboard(getSrtPlayUrl(stream.stream_key, serverIp))}
-                                  className="ml-1 p-1.5 text-gray-600 hover:text-gray-900"
-                                  title={t('streams.copy')}
-                                >
-                                  <Copy className="w-4 h-4" />
-                                </button>
-                              </div>
-                            </div>
 
-                            {/* Public SRT */}
-                            {getPublicAddress() && (
-                              <div>
+                              {/* LAN SRT */}
+                              <div className="mb-2">
                                 <div className="flex items-center mb-1">
-                                  <span className="px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full font-medium">
-                                    {t('streams.public')}
+                                  <span className="px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full font-medium">
+                                    {t('streams.lan')}
                                   </span>
                                 </div>
                                 <div className="flex items-center">
                                   <code className="flex-1 px-2 py-1.5 bg-gray-50 rounded text-xs font-mono overflow-x-auto">
-                                    {getSrtPlayUrl(stream.stream_key, getPublicAddress())}
+                                    {getSrtPlayUrl(stream.stream_key, serverIp)}
                                   </code>
                                   <button
-                                    onClick={() => copyToClipboard(getSrtPlayUrl(stream.stream_key, getPublicAddress()))}
+                                    onClick={() => copyToClipboard(getSrtPlayUrl(stream.stream_key, serverIp))}
                                     className="ml-1 p-1.5 text-gray-600 hover:text-gray-900"
                                     title={t('streams.copy')}
                                   >
@@ -697,11 +680,35 @@ export default function Streams() {
                                   </button>
                                 </div>
                               </div>
-                            )}
-                          </div>
+
+                              {/* Public SRT */}
+                              {getPublicAddress() && (
+                                <div>
+                                  <div className="flex items-center mb-1">
+                                    <span className="px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full font-medium">
+                                      {t('streams.public')}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center">
+                                    <code className="flex-1 px-2 py-1.5 bg-gray-50 rounded text-xs font-mono overflow-x-auto">
+                                      {getSrtPlayUrl(stream.stream_key, getPublicAddress())}
+                                    </code>
+                                    <button
+                                      onClick={() => copyToClipboard(getSrtPlayUrl(stream.stream_key, getPublicAddress()))}
+                                      className="ml-1 p-1.5 text-gray-600 hover:text-gray-900"
+                                      title={t('streams.copy')}
+                                    >
+                                      <Copy className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
 
                           {/* RTMP Protocol */}
-                          <div>
+                          {(stream.protocol === 'rtmp' || stream.protocol === 'both') && (
+                            <div>
                             <div className="flex items-center mb-2">
                               <span className="px-2 py-0.5 bg-purple-100 text-purple-800 text-xs rounded font-medium mr-2">
                                 {t('streams.rtmp')}
@@ -752,7 +759,8 @@ export default function Streams() {
                                 </div>
                               </div>
                             )}
-                          </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
