@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { authAPI } from '../services/api';
+import axios from 'axios';
 
 const AuthContext = createContext(null);
 
@@ -14,6 +15,7 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [activeSessions, setActiveSessions] = useState([]);
 
   useEffect(() => {
     // Check if user is logged in
@@ -77,6 +79,82 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Check if user has a specific permission
+  const hasPermission = (permission) => {
+    if (!user || !user.permissions) return false;
+
+    // Admin has all permissions
+    if (user.permissions.includes('all')) return true;
+
+    // Check for specific permission
+    return user.permissions.includes(permission);
+  };
+
+  // Check if user has a specific role
+  const hasRole = (roleName) => {
+    if (!user || !user.role) return false;
+    return user.role.name === roleName;
+  };
+
+  // Fetch user's active sessions
+  const refreshSessions = async () => {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/sessions/user-sessions`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (response.data.success) {
+        setActiveSessions(response.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching sessions:', error);
+    }
+  };
+
+  // Revoke a specific session
+  const revokeSession = async (sessionId) => {
+    try {
+      await axios.delete(
+        `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/sessions/user-sessions/${sessionId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
+
+      // Refresh sessions list
+      await refreshSessions();
+      return { success: true };
+    } catch (error) {
+      const message = error.response?.data?.error || 'Failed to revoke session';
+      return { success: false, error: message };
+    }
+  };
+
+  // Revoke all other sessions
+  const revokeAllOtherSessions = async () => {
+    try {
+      await axios.delete(
+        `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/sessions/user-sessions`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
+
+      // Refresh sessions list
+      await refreshSessions();
+      return { success: true };
+    } catch (error) {
+      const message = error.response?.data?.error || 'Failed to revoke sessions';
+      return { success: false, error: message };
+    }
+  };
+
   const value = {
     user,
     loading,
@@ -84,6 +162,16 @@ export const AuthProvider = ({ children }) => {
     logout,
     changePassword,
     isAuthenticated: !!user,
+    // RBAC
+    permissions: user?.permissions || [],
+    role: user?.role || null,
+    hasPermission,
+    hasRole,
+    // Session management
+    activeSessions,
+    refreshSessions,
+    revokeSession,
+    revokeAllOtherSessions,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

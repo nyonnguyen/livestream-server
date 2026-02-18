@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
+const UserSession = require('../models/UserSession');
+const Role = require('../models/Role');
 const { generateToken, authenticate } = require('../middleware/auth');
 const { validateLogin, validateChangePassword } = require('../middleware/validator');
 const { asyncHandler } = require('../middleware/errorHandler');
@@ -38,8 +40,16 @@ router.post('/login', validateLogin, asyncHandler(async (req, res) => {
     });
   }
 
-  // Generate token
-  const token = generateToken(user);
+  // Get device info and IP address
+  const deviceInfo = req.headers['user-agent'] || 'Unknown Device';
+  const ipAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.socket.remoteAddress;
+
+  // Generate token with session
+  const token = generateToken(user, deviceInfo, ipAddress);
+
+  // Get user role and permissions
+  const role = Role.getUserRole(user.id);
+  const permissions = role ? JSON.parse(role.permissions) : [];
 
   res.json({
     success: true,
@@ -49,7 +59,9 @@ router.post('/login', validateLogin, asyncHandler(async (req, res) => {
         id: user.id,
         username: user.username,
         email: user.email,
-        must_change_password: user.must_change_password
+        must_change_password: user.must_change_password,
+        role: role ? { id: role.id, name: role.name, display_name: role.display_name } : null,
+        permissions
       }
     }
   });
@@ -57,9 +69,16 @@ router.post('/login', validateLogin, asyncHandler(async (req, res) => {
 
 /**
  * POST /api/auth/logout
- * Logout (client-side token removal)
+ * Logout and revoke session
  */
 router.post('/logout', authenticate, asyncHandler(async (req, res) => {
+  const token = req.headers.authorization.substring(7);
+  const crypto = require('crypto');
+  const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+  // Revoke the session
+  UserSession.revokeSession(tokenHash);
+
   res.json({
     success: true,
     message: 'Logged out successfully'
@@ -114,6 +133,10 @@ router.get('/me', authenticate, asyncHandler(async (req, res) => {
     });
   }
 
+  // Get user role and permissions
+  const role = Role.getUserRole(user.id);
+  const permissions = role ? JSON.parse(role.permissions) : [];
+
   res.json({
     success: true,
     data: {
@@ -122,7 +145,9 @@ router.get('/me', authenticate, asyncHandler(async (req, res) => {
       email: user.email,
       is_active: user.is_active,
       must_change_password: user.must_change_password,
-      created_at: user.created_at
+      created_at: user.created_at,
+      role: role ? { id: role.id, name: role.name, display_name: role.display_name } : null,
+      permissions
     }
   });
 }));

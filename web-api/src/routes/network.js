@@ -2,6 +2,12 @@ const express = require('express');
 const router = express.Router();
 const { db } = require('../config/database');
 const axios = require('axios');
+const PublicIpHistory = require('../models/PublicIpHistory');
+const publicIpMonitor = require('../services/publicIpMonitor');
+const { authenticate } = require('../middleware/auth');
+const { requireAdmin } = require('../middleware/rbac');
+const { logActivity } = require('../middleware/auditLog');
+const { asyncHandler } = require('../middleware/errorHandler');
 const {
   getNetworkInterfaces,
   getBestIPAddress,
@@ -302,5 +308,143 @@ router.put('/config', (req, res) => {
     });
   }
 });
+
+/**
+ * GET /api/network/public-ip-history
+ * Get public IP change history
+ */
+router.get('/public-ip-history', authenticate, asyncHandler(async (req, res) => {
+  const limit = req.query.limit ? parseInt(req.query.limit) : 10;
+  const history = PublicIpHistory.getLatest(limit);
+
+  res.json({
+    success: true,
+    data: history
+  });
+}));
+
+/**
+ * POST /api/network/public-ip-apply
+ * Apply a detected IP change
+ */
+router.post('/public-ip-apply', authenticate, requireAdmin, logActivity('public_ip_apply', 'config'), asyncHandler(async (req, res) => {
+  const { history_id, ip_address } = req.body;
+
+  if (!history_id && !ip_address) {
+    return res.status(400).json({
+      success: false,
+      error: 'Either history_id or ip_address is required'
+    });
+  }
+
+  let ipToApply = ip_address;
+
+  if (history_id) {
+    const history = PublicIpHistory.getLatest(100);
+    const record = history.find(h => h.id === history_id);
+
+    if (!record) {
+      return res.status(404).json({
+        success: false,
+        error: 'History record not found'
+      });
+    }
+
+    ipToApply = record.new_ip;
+
+    // Mark as applied
+    PublicIpHistory.markApplied(history_id, false);
+  }
+
+  // Update server_public_ip config
+  const updateStmt = db.prepare(`
+    INSERT OR REPLACE INTO config (key, value, description)
+    VALUES (?, ?, ?)
+  `);
+
+  updateStmt.run('server_public_ip', ipToApply, 'Public IP address for remote access');
+
+  res.json({
+    success: true,
+    message: 'Public IP updated successfully',
+    data: {
+      public_ip: ipToApply
+    }
+  });
+}));
+
+/**
+ * GET /api/network/monitor-status
+ * Get IP monitor status
+ */
+router.get('/monitor-status', authenticate, asyncHandler(async (req, res) => {
+  const status = publicIpMonitor.getStatus();
+  const config = db.prepare('SELECT value FROM config WHERE key = ?').get('public_ip_monitor_enabled');
+  const intervalConfig = db.prepare('SELECT value FROM config WHERE key = ?').get('public_ip_monitor_interval');
+
+  res.json({
+    success: true,
+    data: {
+      ...status,
+      enabled: config && config.value === 'true',
+      interval_seconds: intervalConfig ? parseInt(intervalConfig.value) : 300
+    }
+  });
+}));
+
+/**
+ * PUT /api/network/monitor-config
+ * Update IP monitor configuration
+ */
+router.put('/monitor-config', authenticate, requireAdmin, logActivity('ip_monitor_config', 'config'), asyncHandler(async (req, res) => {
+  const { enabled, interval_seconds } = req.body;
+
+  const updateStmt = db.prepare(`
+    INSERT OR REPLACE INTO config (key, value, description)
+    VALUES (?, ?, ?)
+  `);
+
+  if (enabled !== undefined) {
+    updateStmt.run('public_ip_monitor_enabled', enabled ? 'true' : 'false', 'Enable automatic public IP monitoring');
+  }
+
+  if (interval_seconds !== undefined) {
+    if (interval_seconds < 60 || interval_seconds > 86400) {
+      return res.status(400).json({
+        success: false,
+        error: 'Interval must be between 60 and 86400 seconds'
+      });
+    }
+    updateStmt.run('public_ip_monitor_interval', interval_seconds.toString(), 'Public IP check interval in seconds');
+  }
+
+  // Restart monitor with new config
+  publicIpMonitor.restart();
+
+  res.json({
+    success: true,
+    message: 'IP monitor configuration updated'
+  });
+}));
+
+/**
+ * POST /api/network/monitor-check
+ * Trigger manual IP check
+ */
+router.post('/monitor-check', authenticate, requireAdmin, asyncHandler(async (req, res) => {
+  try {
+    const result = await publicIpMonitor.manualCheck();
+
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+}));
 
 module.exports = router;

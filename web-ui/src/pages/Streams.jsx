@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link, useNavigate } from 'react-router-dom';
 import { streamsAPI, sessionsAPI } from '../services/api';
 import {
   Plus,
@@ -15,13 +16,16 @@ import {
   ChevronDown,
   ChevronUp,
   Play,
+  History as HistoryIcon,
 } from 'lucide-react';
 import StreamModal from '../components/StreamModal';
 import QRCodeModal from '../components/QRCodeModal';
 import FlvPlayer from '../components/FlvPlayer';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 export default function Streams() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [streams, setStreams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -34,6 +38,9 @@ export default function Streams() {
   const [activeSessions, setActiveSessions] = useState([]);
   const [expandedStreams, setExpandedStreams] = useState({});
   const [playingStreams, setPlayingStreams] = useState({});
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deletingStream, setDeletingStream] = useState(null);
+  const [deletionReason, setDeletionReason] = useState('');
 
   useEffect(() => {
     fetchStreams();
@@ -113,16 +120,39 @@ export default function Streams() {
     setShowModal(true);
   };
 
-  const handleDelete = async (id, name) => {
-    if (!confirm(t('streams.deleteConfirm', { name }))) {
-      return;
-    }
+  const handleDelete = async (stream) => {
+    setDeletingStream(stream);
+    setDeletionReason('');
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deletingStream) return;
 
     try {
-      await streamsAPI.delete(id);
-      fetchStreams();
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/streams/${deletingStream.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          deletion_reason: deletionReason || 'No reason provided'
+        })
+      });
+
+      if (response.ok) {
+        fetchStreams();
+        setShowDeleteDialog(false);
+        setDeletingStream(null);
+        setDeletionReason('');
+      } else {
+        const error = await response.json();
+        alert(t('streams.errorDeleting') + (error.error || 'Unknown error'));
+      }
     } catch (error) {
-      alert(t('streams.errorDeleting') + error.response?.data?.error);
+      alert(t('streams.errorDeleting') + error.message);
     }
   };
 
@@ -284,10 +314,19 @@ export default function Streams() {
           <h1 className="text-2xl font-bold text-gray-900">{t('streams.title')}</h1>
           <p className="text-gray-600">{t('streams.subtitle')}</p>
         </div>
-        <button onClick={handleCreate} className="btn-primary flex items-center">
-          <Plus className="w-5 h-5 mr-2" />
-          {t('streams.addStream')}
-        </button>
+        <div className="flex gap-3">
+          <Link
+            to="/streams/history"
+            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            <HistoryIcon className="w-5 h-5 mr-2" />
+            View History
+          </Link>
+          <button onClick={handleCreate} className="btn-primary flex items-center">
+            <Plus className="w-5 h-5 mr-2" />
+            {t('streams.addStream')}
+          </button>
+        </div>
       </div>
 
       {streams.length === 0 ? (
@@ -392,7 +431,7 @@ export default function Streams() {
                       <RefreshCw className="w-5 h-5" />
                     </button>
                     <button
-                      onClick={() => handleDelete(stream.id, stream.name)}
+                      onClick={() => handleDelete(stream)}
                       className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
                       title={t('streams.delete')}
                     >
@@ -789,6 +828,41 @@ export default function Streams() {
           onClose={() => setQrCodeStream(null)}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={showDeleteDialog}
+        onClose={() => {
+          setShowDeleteDialog(false);
+          setDeletingStream(null);
+          setDeletionReason('');
+        }}
+        onConfirm={confirmDelete}
+        title="Delete Stream"
+        confirmText="Delete Stream"
+        type="danger"
+      >
+        {deletingStream && (
+          <div>
+            <p className="text-sm text-gray-500 mb-4">
+              Are you sure you want to delete the stream <strong>{deletingStream.name}</strong>?
+              This stream will be moved to the history and can be restored within 30 days.
+            </p>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Deletion Reason (optional)
+              </label>
+              <textarea
+                value={deletionReason}
+                onChange={(e) => setDeletionReason(e.target.value)}
+                rows={3}
+                placeholder="Enter a reason for deleting this stream..."
+                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              />
+            </div>
+          </div>
+        )}
+      </ConfirmDialog>
     </div>
   );
 }
