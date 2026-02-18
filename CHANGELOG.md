@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.4] - 2026-02-18
+
+### Changed
+- fix: conditionally display protocol URLs based on stream configuration (#32)
+
+
+
 ## [1.7.3] - 2026-02-17
 
 ### Changed
@@ -222,3 +229,5 @@ Commit messages should follow:
 [1.7.2]: https://github.com/nyonnguyen/livestream-server/compare/v1.7.1...v1.7.2
 
 [1.7.3]: https://github.com/nyonnguyen/livestream-server/compare/v1.7.2...v1.7.3
+
+[1.7.4]: https://github.com/nyonnguyen/livestream-server/compare/v1.7.3...v1.7.4
