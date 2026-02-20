@@ -1,9 +1,7 @@
-#!/bin/bash
+#!/bin/sh
 
 # Auto-update script for livestream-server
 # This script is triggered by the web UI "Update Now" button
-
-set -e
 
 # Colors for output
 RED='\033[0;31m'
@@ -12,16 +10,19 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 log() {
-    echo -e "${GREEN}[$(date +'%Y-%m-%d %H:%M:%S')]${NC} $1"
+    echo "${GREEN}[$(date +'%Y-%m-%d %H:%M:%S')]${NC} $1"
 }
 
 error() {
-    echo -e "${RED}[$(date +'%Y-%m-%d %H:%M:%S')] ERROR:${NC} $1"
+    echo "${RED}[$(date +'%Y-%m-%d %H:%M:%S')] ERROR:${NC} $1"
 }
 
 warn() {
-    echo -e "${YELLOW}[$(date +'%Y-%m-%d %H:%M:%S')] WARNING:${NC} $1"
+    echo "${YELLOW}[$(date +'%Y-%m-%d %H:%M:%S')] WARNING:${NC} $1"
 }
+
+# Ensure [UPDATE FAILED] is written on any unexpected exit
+trap 'error "Script exited unexpectedly"; echo "[UPDATE FAILED]"' EXIT
 
 # Determine the installation directory
 # If running in container, use current directory (which should be /host_project mounted from host)
@@ -35,28 +36,58 @@ elif [ -d "$HOME/livestream-server" ]; then
 else
     error "Cannot find livestream-server installation directory"
     echo "[UPDATE FAILED]"
+    trap - EXIT
     exit 1
 fi
 
 log "Starting update process..."
 log "Installation directory: $INSTALL_DIR"
 
-cd "$INSTALL_DIR" || exit 1
+cd "$INSTALL_DIR" || { error "Cannot cd to $INSTALL_DIR"; echo "[UPDATE FAILED]"; trap - EXIT; exit 1; }
 
 # Check if we're in a git repository
 if [ ! -d ".git" ]; then
     error "Not a git repository"
     echo "[UPDATE FAILED]"
+    trap - EXIT
     exit 1
 fi
 
 # Configure git to trust the mounted directory and set pull strategy
 git config --global --add safe.directory "$INSTALL_DIR" 2>/dev/null || true
+git config --global --add safe.directory "*" 2>/dev/null || true
 git config pull.rebase false 2>/dev/null || true
+
+# Log diagnostic info
+REMOTE_URL=$(git remote get-url origin 2>/dev/null || echo "unknown")
+log "Remote URL: $REMOTE_URL"
+
+# If remote is SSH, convert to HTTPS for container access
+case "$REMOTE_URL" in
+    git@github.com:*)
+        HTTPS_URL="https://github.com/$(echo "$REMOTE_URL" | sed 's|git@github.com:||' | sed 's|\.git$||').git"
+        warn "Remote uses SSH which won't work inside container. Switching to HTTPS..."
+        log "Converting: $REMOTE_URL -> $HTTPS_URL"
+        git remote set-url origin "$HTTPS_URL" 2>&1
+        REMOTE_URL="$HTTPS_URL"
+        ;;
+esac
+
+# Test connectivity
+log "Testing connectivity to remote..."
+if ! git ls-remote --exit-code origin HEAD >/dev/null 2>&1; then
+    error "Cannot reach remote repository: $REMOTE_URL"
+    log "Checking DNS resolution..."
+    nslookup github.com 2>&1 || true
+    echo "[UPDATE FAILED]"
+    trap - EXIT
+    exit 1
+fi
+log "Remote is reachable"
 
 # Get current version and branch
 CURRENT_VERSION=$(cat VERSION 2>/dev/null || echo "unknown")
-CURRENT_BRANCH=$(git branch --show-current)
+CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
 log "Current version: $CURRENT_VERSION"
 log "Current branch: $CURRENT_BRANCH"
 
@@ -65,6 +96,7 @@ log "Fetching latest changes from GitHub..."
 if ! git fetch origin main 2>&1; then
     error "Failed to fetch from GitHub"
     echo "[UPDATE FAILED]"
+    trap - EXIT
     exit 1
 fi
 
@@ -82,6 +114,7 @@ if [ "$CURRENT_BRANCH" != "main" ]; then
     if ! git checkout main 2>&1; then
         error "Failed to switch to main branch"
         echo "[UPDATE FAILED]"
+        trap - EXIT
         exit 1
     fi
 fi
@@ -90,6 +123,7 @@ fi
 if git diff --quiet HEAD origin/main; then
     log "Already up to date!"
     echo "[UPDATE COMPLETE]"
+    trap - EXIT
     exit 0
 fi
 
@@ -102,6 +136,7 @@ log "Pulling latest code..."
 if ! git pull origin main 2>&1; then
     error "Failed to pull latest code"
     echo "[UPDATE FAILED]"
+    trap - EXIT
     exit 1
 fi
 
@@ -128,4 +163,6 @@ echo ""
 log "Update completed successfully!"
 echo "[UPDATE COMPLETE]"
 
+# Clear the trap on successful exit
+trap - EXIT
 exit 0
