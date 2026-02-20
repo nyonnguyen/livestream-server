@@ -152,14 +152,31 @@ if [ -f "/.dockerenv" ] || [ -d "/host_project" ]; then
     # Determine which docker compose command to use
     if docker compose version &> /dev/null 2>&1; then
         COMPOSE_CMD="docker compose"
+        log "Using docker compose (v2) from container"
     elif command -v docker-compose &> /dev/null 2>&1; then
         COMPOSE_CMD="docker-compose"
+        log "Using docker-compose (v1) from container"
     else
-        error "Neither 'docker compose' nor 'docker-compose' found!"
-        warn "Please rebuild containers manually:"
-        warn "  cd /opt/livestream-server && docker compose up -d --build"
-        echo "[UPDATE COMPLETE]"
-        exit 0
+        # Container doesn't have compose, use host's docker compose via nsenter
+        log "Docker compose not found in container, attempting to use host's via nsenter..."
+
+        # Try docker compose (v2) on host first
+        if nsenter --target 1 --mount --uts --ipc --net --pid -- docker compose version &> /dev/null 2>&1; then
+            COMPOSE_CMD="nsenter --target 1 --mount --uts --ipc --net --pid -- docker compose"
+            log "Using docker compose (v2) from host via nsenter"
+        # Try docker-compose (v1) on host
+        elif nsenter --target 1 --mount --uts --ipc --net --pid -- docker-compose version &> /dev/null 2>&1; then
+            COMPOSE_CMD="nsenter --target 1 --mount --uts --ipc --net --pid -- docker-compose"
+            log "Using docker-compose (v1) from host via nsenter"
+        else
+            error "Cannot find docker compose on container or host!"
+            error "Please ensure docker compose is installed on the host system."
+            warn "Manual rebuild required:"
+            warn "  cd /opt/livestream-server && docker compose up -d --build"
+            echo "[UPDATE FAILED]"
+            trap - EXIT
+            exit 1
+        fi
     fi
 
     log "Using compose command: $COMPOSE_CMD"
