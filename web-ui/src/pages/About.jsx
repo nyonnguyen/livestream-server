@@ -13,11 +13,25 @@ export default function About() {
   const [error, setError] = useState(null);
   const [updating, setUpdating] = useState(false);
   const [updateStatus, setUpdateStatus] = useState(null);
+  const [updateLog, setUpdateLog] = useState('');
   const [showUpdateConfirm, setShowUpdateConfirm] = useState(false);
+  const [showFullLog, setShowFullLog] = useState(false);
 
   useEffect(() => {
     fetchVersion();
   }, []);
+
+  // Auto-scroll log to bottom when it updates
+  useEffect(() => {
+    if (showFullLog && updateLog) {
+      const logElement = document.getElementById('update-log');
+      if (logElement) {
+        setTimeout(() => {
+          logElement.scrollTop = logElement.scrollHeight;
+        }, 100);
+      }
+    }
+  }, [updateLog, showFullLog]);
 
   const fetchVersion = async () => {
     try {
@@ -51,7 +65,9 @@ export default function About() {
     setShowUpdateConfirm(false);
     setUpdating(true);
     setUpdateStatus('Starting update...');
+    setUpdateLog('');
     setError(null);
+    setShowFullLog(true);
 
     try {
       // Start the update
@@ -67,25 +83,35 @@ export default function About() {
           const statusResponse = await systemAPI.updateStatus();
           const { status, log } = statusResponse.data.data;
 
+          // Update the full log
+          setUpdateLog(log);
+
           if (status === 'complete') {
             clearInterval(pollInterval);
             setUpdating(false);
-            setUpdateStatus('Update completed successfully! Please refresh the page.');
-            // Refresh version info after update
-            setTimeout(() => {
-              window.location.reload();
-            }, 3000);
+
+            // Check if update actually failed (error in log)
+            if (log.includes('ERROR:') || log.includes('[UPDATE FAILED]')) {
+              setError('Update failed. Check the logs below for details.');
+              setUpdateStatus('Update failed');
+            } else {
+              setUpdateStatus('Update completed successfully! Refreshing page...');
+              // Refresh version info after update (wait 5 seconds for containers to stabilize)
+              setTimeout(() => {
+                window.location.reload();
+              }, 5000);
+            }
           } else if (status === 'failed') {
             clearInterval(pollInterval);
             setUpdating(false);
             // Show actual log output so user can see what went wrong
             const logLines = log.split('\n').filter(line => line.trim());
             const errorDetails = logLines.slice(-5).join('\n');
-            setError(`Update failed:\n${errorDetails}`);
-            setUpdateStatus(null);
+            setError(`Update failed. Check the full logs below for details.\n\nLast 5 lines:\n${errorDetails}`);
+            setUpdateStatus('Update failed');
           } else {
-            // Extract last line from log as status
-            const lines = log.split('\n').filter(line => line.trim());
+            // Extract last non-empty line from log as status
+            const lines = log.split('\n').filter(line => line.trim() && !line.includes('[UPDATE'));
             const lastLine = lines[lines.length - 1] || 'Updating...';
             setUpdateStatus(lastLine);
           }
@@ -94,15 +120,15 @@ export default function About() {
         }
       }, 2000); // Poll every 2 seconds
 
-      // Stop polling after 5 minutes (timeout)
+      // Stop polling after 10 minutes (timeout) - increased for rebuild time
       setTimeout(() => {
         clearInterval(pollInterval);
         if (updating) {
           setUpdating(false);
-          setError('Update timeout. Please check the server status.');
-          setUpdateStatus(null);
+          setError('Update timeout. The update may still be running in the background.');
+          setUpdateStatus('Update timeout');
         }
-      }, 5 * 60 * 1000);
+      }, 10 * 60 * 1000);
 
     } catch (err) {
       console.error('Failed to start update:', err);
@@ -287,10 +313,67 @@ export default function About() {
           {/* Update Status */}
           {updateStatus && (
             <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-2">
-              <RefreshCw className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5 animate-spin" />
-              <div>
-                <p className="text-blue-900 font-medium text-sm">Updating</p>
+              <RefreshCw className={`w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5 ${updating ? 'animate-spin' : ''}`} />
+              <div className="flex-1">
+                <p className="text-blue-900 font-medium text-sm">
+                  {updating ? 'Updating' : 'Update Complete'}
+                </p>
                 <p className="text-blue-800 text-sm">{updateStatus}</p>
+              </div>
+              {!updating && (
+                <button
+                  onClick={() => setShowFullLog(!showFullLog)}
+                  className="text-xs text-blue-700 hover:text-blue-900 font-medium"
+                >
+                  {showFullLog ? 'Hide Logs' : 'Show Logs'}
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Full Update Log */}
+          {showFullLog && updateLog && (
+            <div className="mt-3 bg-gray-900 text-gray-100 rounded-lg p-4 font-mono text-xs overflow-hidden">
+              <div className="flex items-center justify-between mb-2 pb-2 border-b border-gray-700">
+                <span className="text-gray-400 font-semibold">Update Log</span>
+                <button
+                  onClick={() => {
+                    const logElement = document.getElementById('update-log');
+                    if (logElement) {
+                      logElement.scrollTop = logElement.scrollHeight;
+                    }
+                  }}
+                  className="text-gray-400 hover:text-gray-200 text-xs"
+                >
+                  Scroll to Bottom
+                </button>
+              </div>
+              <div
+                id="update-log"
+                className="max-h-96 overflow-y-auto whitespace-pre-wrap break-words"
+                style={{ scrollBehavior: 'smooth' }}
+              >
+                {updateLog.split('\n').map((line, index) => {
+                  const isError = line.includes('ERROR:') || line.includes('FAILED');
+                  const isWarning = line.includes('WARNING:');
+                  const isSuccess = line.includes('✓') || line.includes('successfully');
+                  const isComplete = line.includes('[UPDATE COMPLETE]');
+
+                  return (
+                    <div
+                      key={index}
+                      className={`py-0.5 ${
+                        isError ? 'text-red-400 font-semibold' :
+                        isWarning ? 'text-yellow-400' :
+                        isSuccess ? 'text-green-400' :
+                        isComplete ? 'text-green-400 font-semibold' :
+                        'text-gray-300'
+                      }`}
+                    >
+                      {line || '\u00A0'}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
