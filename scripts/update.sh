@@ -50,9 +50,15 @@ if [ ! -d ".git" ]; then
     exit 1
 fi
 
-# Get current version
+# Configure git to trust the mounted directory and set pull strategy
+git config --global --add safe.directory "$INSTALL_DIR" 2>/dev/null || true
+git config pull.rebase false 2>/dev/null || true
+
+# Get current version and branch
 CURRENT_VERSION=$(cat VERSION 2>/dev/null || echo "unknown")
+CURRENT_BRANCH=$(git branch --show-current)
 log "Current version: $CURRENT_VERSION"
+log "Current branch: $CURRENT_BRANCH"
 
 # Fetch latest changes
 log "Fetching latest changes from GitHub..."
@@ -60,6 +66,24 @@ if ! git fetch origin main 2>&1; then
     error "Failed to fetch from GitHub"
     echo "[UPDATE FAILED]"
     exit 1
+fi
+
+# If not on main branch, switch to it
+if [ "$CURRENT_BRANCH" != "main" ]; then
+    warn "Currently on branch '$CURRENT_BRANCH', switching to 'main'..."
+
+    # Stash any local changes
+    if ! git diff --quiet || ! git diff --cached --quiet; then
+        log "Stashing local changes..."
+        git stash push -m "Auto-stash before update at $(date)" 2>&1 || true
+    fi
+
+    # Switch to main branch
+    if ! git checkout main 2>&1; then
+        error "Failed to switch to main branch"
+        echo "[UPDATE FAILED]"
+        exit 1
+    fi
 fi
 
 # Check if there are updates
@@ -85,43 +109,23 @@ fi
 NEW_VERSION=$(cat VERSION 2>/dev/null || echo "unknown")
 log "New version: $NEW_VERSION"
 
-# Pull latest Docker images
-log "Pulling latest Docker images..."
-if ! docker compose pull 2>&1; then
-    warn "Failed to pull Docker images, will rebuild locally"
-fi
-
-# Rebuild and restart containers
-log "Rebuilding containers..."
-if ! docker compose build 2>&1; then
-    error "Failed to build containers"
-    echo "[UPDATE FAILED]"
-    exit 1
-fi
-
-log "Restarting services..."
-if ! docker compose up -d 2>&1; then
-    error "Failed to restart services"
-    echo "[UPDATE FAILED]"
-    exit 1
-fi
-
-# Wait for services to be healthy
-log "Waiting for services to start..."
-sleep 5
-
-# Check if containers are running
-RUNNING_CONTAINERS=$(docker compose ps --services --filter "status=running" | wc -l)
-TOTAL_CONTAINERS=$(docker compose ps --services | wc -l)
-
-if [ "$RUNNING_CONTAINERS" -eq "$TOTAL_CONTAINERS" ]; then
-    log "All containers are running!"
-else
-    warn "$RUNNING_CONTAINERS/$TOTAL_CONTAINERS containers running"
-fi
+echo ""
+warn "================================================"
+warn "Code updated successfully!"
+warn "Updated from version $CURRENT_VERSION to $NEW_VERSION"
+warn ""
+warn "To apply the changes, please run:"
+warn "  1. SSH to your server"
+warn "  2. cd /opt/livestream-server"
+warn "  3. docker compose build"
+warn "  4. docker compose up -d"
+warn ""
+warn "The containers must be rebuilt manually to use"
+warn "the new code. This ensures a safe update process."
+warn "================================================"
+echo ""
 
 log "Update completed successfully!"
-log "Updated from version $CURRENT_VERSION to $NEW_VERSION"
 echo "[UPDATE COMPLETE]"
 
 exit 0
