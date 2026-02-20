@@ -108,24 +108,88 @@ fi
 # Get new version
 NEW_VERSION=$(cat VERSION 2>/dev/null || echo "unknown")
 log "New version: $NEW_VERSION"
+log "Updated from version $CURRENT_VERSION to $NEW_VERSION"
 
-echo ""
-warn "================================================"
-warn "Code updated successfully!"
-warn "Updated from version $CURRENT_VERSION to $NEW_VERSION"
-warn ""
-warn "To apply the changes, please run:"
-warn "  1. SSH to your server"
-warn "  2. cd /opt/livestream-server"
-warn "  3. docker compose build"
-warn "  4. docker compose up -d"
-warn ""
-warn "The containers must be rebuilt manually to use"
-warn "the new code. This ensures a safe update process."
-warn "================================================"
-echo ""
+# Check if running in container (web update)
+if [ -f "/.dockerenv" ] || [ -d "/host_project" ]; then
+    log "Detected container environment - performing automatic rebuild..."
 
-log "Update completed successfully!"
-echo "[UPDATE COMPLETE]"
+    # Determine which docker compose command to use
+    if docker compose version &> /dev/null 2>&1; then
+        COMPOSE_CMD="docker compose"
+    elif command -v docker-compose &> /dev/null 2>&1; then
+        COMPOSE_CMD="docker-compose"
+    else
+        error "Neither 'docker compose' nor 'docker-compose' found!"
+        warn "Please rebuild containers manually:"
+        warn "  cd /opt/livestream-server && docker compose up -d --build"
+        echo "[UPDATE COMPLETE]"
+        exit 0
+    fi
+
+    log "Using compose command: $COMPOSE_CMD"
+
+    # Pull latest images (if using pre-built images)
+    log "Pulling latest Docker images..."
+    if ! $COMPOSE_CMD -f docker-compose.prod.yml pull 2>&1; then
+        warn "Failed to pull images (may not exist), will build locally"
+    fi
+
+    # Stop containers
+    log "Stopping containers..."
+    if ! $COMPOSE_CMD down 2>&1; then
+        error "Failed to stop containers"
+        echo "[UPDATE FAILED]"
+        exit 1
+    fi
+
+    # Build containers
+    log "Building containers (this may take several minutes)..."
+    if ! $COMPOSE_CMD build --no-cache 2>&1; then
+        error "Failed to build containers"
+        echo "[UPDATE FAILED]"
+        exit 1
+    fi
+
+    # Start containers
+    log "Starting containers..."
+    if ! $COMPOSE_CMD up -d 2>&1; then
+        error "Failed to start containers"
+        echo "[UPDATE FAILED]"
+        exit 1
+    fi
+
+    # Wait for services to be ready
+    log "Waiting for services to initialize..."
+    sleep 10
+
+    # Check if containers are running
+    RUNNING_CONTAINERS=$($COMPOSE_CMD ps --services --filter "status=running" 2>/dev/null | wc -l)
+    TOTAL_CONTAINERS=$($COMPOSE_CMD ps --services 2>/dev/null | wc -l)
+
+    log "Container status: $RUNNING_CONTAINERS/$TOTAL_CONTAINERS running"
+
+    if [ "$RUNNING_CONTAINERS" -lt "$TOTAL_CONTAINERS" ]; then
+        warn "Not all containers are running, check logs with: docker compose logs"
+    fi
+
+    log "Update and rebuild completed successfully!"
+    log "All containers have been restarted with new version: $NEW_VERSION"
+    echo "[UPDATE COMPLETE]"
+else
+    # Running locally - show manual instructions
+    echo ""
+    warn "================================================"
+    warn "Code updated successfully!"
+    warn ""
+    warn "To apply the changes, please run:"
+    warn "  1. cd /opt/livestream-server"
+    warn "  2. docker compose build"
+    warn "  3. docker compose up -d"
+    warn "================================================"
+    echo ""
+    log "Update completed!"
+    echo "[UPDATE COMPLETE]"
+fi
 
 exit 0
