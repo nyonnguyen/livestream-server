@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { configAPI } from '../services/api';
+import api, { configAPI } from '../services/api';
 import { Save, Key, Wifi, Network, Globe, RefreshCw, Wand2, Shield, Clock } from 'lucide-react';
 import ChangePasswordModal from '../components/ChangePasswordModal';
-import axios from 'axios';
 
 export default function Settings() {
   const { t } = useTranslation();
@@ -64,7 +63,7 @@ export default function Settings() {
 
   const fetchNetworkInterfaces = async () => {
     try {
-      const response = await axios.get('/api/network/interfaces');
+      const response = await api.get('/api/network/interfaces');
       const data = response.data.data;
       setNetworkInterfaces(data.interfaces);
 
@@ -82,7 +81,7 @@ export default function Settings() {
 
   const fetchNetworkConfig = async () => {
     try {
-      const response = await axios.get('/api/network/config');
+      const response = await api.get('/api/network/config');
       const data = response.data.data;
       setNetworkConfig({
         server_ip_mode: data.server_ip_mode || 'auto',
@@ -102,7 +101,7 @@ export default function Settings() {
 
   const fetchMonitorConfig = async () => {
     try {
-      const response = await axios.get('/api/network/monitor-status');
+      const response = await api.get('/api/network/monitor-status');
       const data = response.data.data;
       setIpMonitorConfig({
         enabled: data.enabled || false,
@@ -130,10 +129,10 @@ export default function Settings() {
       await configAPI.update(updates);
 
       // Save network config
-      await axios.put('/api/network/config', networkConfig);
+      await api.put('/api/network/config', networkConfig);
 
       // Save IP monitor config
-      await axios.put('/api/network/monitor-config', ipMonitorConfig);
+      await api.put('/api/network/monitor-config', ipMonitorConfig);
 
       setMessage({
         type: 'success',
@@ -165,7 +164,7 @@ export default function Settings() {
   const handleDetectPublicIP = async () => {
     setDetectingPublicIP(true);
     try {
-      const response = await axios.get('/api/network/detect-public-ip');
+      const response = await api.get('/api/network/detect-public-ip');
       if (response.data.success && response.data.data.publicIP) {
         setNetworkConfig({
           ...networkConfig,

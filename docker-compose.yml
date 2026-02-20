@@ -32,7 +32,7 @@ services:
       - ./VERSION:/app/VERSION:ro
       - /proc:/host_proc:ro
       - ./scripts:/host_scripts:ro
-      - .:/host_project:ro
+      - .:/host_project
       - /var/run/docker.sock:/var/run/docker.sock
     cap_add:
       - NET_ADMIN      # For network namespace access
