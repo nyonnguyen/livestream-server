@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X, Check, AlertTriangle } from 'lucide-react';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import api from '../services/api';
 
 /**
  * PublicIpNotification Component
@@ -47,13 +46,12 @@ const PublicIpNotification = () => {
       const token = localStorage.getItem('token');
       if (!token) return; // User not logged in
 
-      const response = await fetch(`${API_URL}/api/network/public-ip-history?limit=1`, {
-        headers: { Authorization: `Bearer ${token}` }
+      const response = await api.get('/network/public-ip-history', {
+        params: { limit: 1 }
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        const history = data.data || [];
+      if (response.data.success) {
+        const history = response.data.data || [];
 
         if (history.length > 0) {
           const latestChange = history[0];
@@ -79,30 +77,20 @@ const PublicIpNotification = () => {
 
     setApplying(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_URL}/api/network/public-ip-apply`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          history_id: notification.id,
-          new_ip: notification.new_ip
-        })
+      const response = await api.post('/network/public-ip-apply', {
+        history_id: notification.id,
+        ip_address: notification.new_ip
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        alert(`Successfully updated ${data.updated || 0} stream(s) with new IP address.`);
+      if (response.data.success) {
+        alert(`Successfully updated public IP to ${notification.new_ip}`);
         setNotification(null);
       } else {
-        const error = await response.json();
-        alert(`Failed to apply IP change: ${error.error || 'Unknown error'}`);
+        alert(`Failed to apply IP change: ${response.data.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Failed to apply IP change:', error);
-      alert('Failed to apply IP change');
+      alert(`Failed to apply IP change: ${error.response?.data?.error || error.message}`);
     } finally {
       setApplying(false);
     }
