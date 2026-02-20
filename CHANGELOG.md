@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.6.3] - 2026-02-20
+
+### Changed
+- fix: use authenticated api instance instead of raw axios/fetch (#51)
+
+
+
 ## [2.6.2] - 2026-02-20
 
 ### Changed
@@ -384,3 +391,5 @@ Commit messages should follow:
 [2.6.1]: https://github.com/nyonnguyen/livestream-server/compare/v2.6.0...v2.6.1
 
 [2.6.2]: https://github.com/nyonnguyen/livestream-server/compare/v2.6.1...v2.6.2
+
+[2.6.3]: https://github.com/nyonnguyen/livestream-server/compare/v2.6.2...v2.6.3
