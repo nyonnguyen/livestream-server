@@ -78,7 +78,10 @@ export default function About() {
           } else if (status === 'failed') {
             clearInterval(pollInterval);
             setUpdating(false);
-            setError('Update failed. Please check the logs or try manual update.');
+            // Show actual log output so user can see what went wrong
+            const logLines = log.split('\n').filter(line => line.trim());
+            const errorDetails = logLines.slice(-5).join('\n');
+            setError(`Update failed:\n${errorDetails}`);
             setUpdateStatus(null);
           } else {
             // Extract last line from log as status
@@ -298,7 +301,7 @@ export default function About() {
               <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
               <div>
                 <p className="text-red-900 font-medium text-sm">Error</p>
-                <p className="text-red-800 text-sm">{error}</p>
+                <pre className="text-red-800 text-sm whitespace-pre-wrap font-sans">{error}</pre>
               </div>
             </div>
           )}
