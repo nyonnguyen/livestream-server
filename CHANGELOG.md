@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.6.0] - 2026-02-20
+
+### Changed
+- feat: add Setup Wizard, IP Monitoring, and Session Management (#48)
+
+
+
 ## [2.5.2] - 2026-02-20
 
 ### Changed
@@ -357,3 +364,5 @@ Commit messages should follow:
 [2.5.1]: https://github.com/nyonnguyen/livestream-server/compare/v2.5.0...v2.5.1
 
 [2.5.2]: https://github.com/nyonnguyen/livestream-server/compare/v2.5.1...v2.5.2
+
+[2.6.0]: https://github.com/nyonnguyen/livestream-server/compare/v2.5.2...v2.6.0
