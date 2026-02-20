@@ -93,6 +93,27 @@ check_requirements() {
     print_success "Disk space check passed: ${AVAILABLE_SPACE}GB available"
 }
 
+# Install system prerequisites
+install_prerequisites() {
+    print_step "Installing system prerequisites..."
+
+    # Update package list
+    sudo apt-get update -qq
+
+    # Install essential packages for Pi OS Lite
+    # These are often missing on minimal installations
+    sudo apt-get install -y \
+        curl \
+        git \
+        ca-certificates \
+        gnupg \
+        lsb-release \
+        python3-requests \
+        openssl 2>&1 | grep -v "externally-managed-environment" || true
+
+    print_success "System prerequisites installed"
+}
+
 # Install Docker
 install_docker() {
     if command -v docker &> /dev/null; then
@@ -445,6 +466,7 @@ main() {
 
     check_root
     check_requirements
+    install_prerequisites
     install_docker
     check_docker_compose || exit 1
     fix_dns
