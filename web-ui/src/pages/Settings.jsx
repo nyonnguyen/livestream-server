@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { configAPI } from '../services/api';
-import { Save, Key, Wifi, Network, Globe, RefreshCw } from 'lucide-react';
+import { Save, Key, Wifi, Network, Globe, RefreshCw, Wand2, Shield, Clock } from 'lucide-react';
 import ChangePasswordModal from '../components/ChangePasswordModal';
 import axios from 'axios';
 
 export default function Settings() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [config, setConfig] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -22,6 +24,11 @@ export default function Settings() {
   });
   const [loadingNetwork, setLoadingNetwork] = useState(true);
   const [detectingPublicIP, setDetectingPublicIP] = useState(false);
+  const [ipMonitorConfig, setIpMonitorConfig] = useState({
+    enabled: false,
+    interval_seconds: 300
+  });
+  const [loadingMonitor, setLoadingMonitor] = useState(true);
 
   useEffect(() => {
     // Load data sequentially to avoid overwhelming the API
@@ -30,11 +37,13 @@ export default function Settings() {
         await fetchConfig();
         await fetchNetworkConfig();
         await fetchNetworkInterfaces();
+        await fetchMonitorConfig();
       } catch (error) {
         console.error('Error loading settings:', error);
       } finally {
         setLoading(false);
         setLoadingNetwork(false);
+        setLoadingMonitor(false);
       }
     };
     loadData();
@@ -91,6 +100,19 @@ export default function Settings() {
     }
   };
 
+  const fetchMonitorConfig = async () => {
+    try {
+      const response = await axios.get('/api/network/monitor-status');
+      const data = response.data.data;
+      setIpMonitorConfig({
+        enabled: data.enabled || false,
+        interval_seconds: data.interval_seconds || 300
+      });
+    } catch (error) {
+      console.error('Error fetching monitor config:', error);
+    }
+  };
+
   const handleSave = async () => {
     setSaving(true);
     setMessage(null);
@@ -110,12 +132,16 @@ export default function Settings() {
       // Save network config
       await axios.put('/api/network/config', networkConfig);
 
+      // Save IP monitor config
+      await axios.put('/api/network/monitor-config', ipMonitorConfig);
+
       setMessage({
         type: 'success',
         text: t('settings.savedSuccess')
       });
       fetchConfig();
       fetchNetworkConfig();
+      fetchMonitorConfig();
     } catch (error) {
       setMessage({
         type: 'error',
@@ -194,6 +220,43 @@ export default function Settings() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Setup & Maintenance */}
+        <div className="card">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <Wand2 className="w-5 h-5 mr-2 text-primary-600" />
+            Setup & Maintenance
+          </h2>
+
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm text-gray-600 mb-3">
+                Run the setup wizard to reconfigure your server or manage active sessions.
+              </p>
+
+              <button
+                onClick={() => navigate('/setup')}
+                className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium text-primary-700 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors"
+              >
+                <Wand2 className="w-5 h-5 mr-2" />
+                Run Setup Wizard
+              </button>
+            </div>
+
+            <div className="pt-4 border-t border-gray-200">
+              <button
+                onClick={() => navigate('/sessions/manage')}
+                className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <Shield className="w-5 h-5 mr-2" />
+                Manage Login Sessions
+              </button>
+              <p className="text-xs text-gray-500 mt-2">
+                View and revoke active login sessions from all devices
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Streaming Configuration */}
         <div className="card">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
@@ -316,6 +379,66 @@ export default function Settings() {
               </button>
             </div>
           </div>
+        </div>
+
+        {/* Public IP Monitoring */}
+        <div className="card lg:col-span-2">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <Clock className="w-5 h-5 mr-2 text-primary-600" />
+            Public IP Monitoring
+          </h2>
+          <p className="text-sm text-gray-600 mb-4">
+            Automatically monitor your public IP address and get notified when it changes.
+          </p>
+
+          {loadingMonitor ? (
+            <div className="text-center text-gray-500 py-4">Loading monitor configuration...</div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div className="flex-1">
+                  <div className="font-medium text-gray-900">Enable IP Monitoring</div>
+                  <div className="text-sm text-gray-600 mt-1">
+                    Automatically detect when your public IP address changes and show a notification
+                  </div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer ml-4">
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={ipMonitorConfig.enabled}
+                    onChange={(e) => setIpMonitorConfig({
+                      ...ipMonitorConfig,
+                      enabled: e.target.checked
+                    })}
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
+                </label>
+              </div>
+
+              {ipMonitorConfig.enabled && (
+                <div className="pl-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Check Interval (seconds)
+                  </label>
+                  <input
+                    type="number"
+                    min="60"
+                    max="86400"
+                    value={ipMonitorConfig.interval_seconds}
+                    onChange={(e) => setIpMonitorConfig({
+                      ...ipMonitorConfig,
+                      interval_seconds: parseInt(e.target.value)
+                    })}
+                    className="input w-48"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    How often to check for IP changes (300 seconds / 5 minutes recommended)
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Network Settings */}
