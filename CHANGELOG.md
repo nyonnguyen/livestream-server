@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.5.1] - 2026-02-20
+
+### Changed
+- fix: simplify update script to only pull code, manual rebuild required (#46)
+
+
+
 ## [2.5.0] - 2026-02-19
 
 ### Changed
@@ -339,3 +346,5 @@ Commit messages should follow:
 [2.4.3]: https://github.com/nyonnguyen/livestream-server/compare/v2.4.2...v2.4.3
 
 [2.5.0]: https://github.com/nyonnguyen/livestream-server/compare/v2.4.3...v2.5.0
+
+[2.5.1]: https://github.com/nyonnguyen/livestream-server/compare/v2.5.0...v2.5.1
