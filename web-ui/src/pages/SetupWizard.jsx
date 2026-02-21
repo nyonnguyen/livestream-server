@@ -561,14 +561,13 @@ const SetupWizard = () => {
             )}
           </div>
           <div className="flex space-x-3">
-            {currentStep < 4 && (
-              <button
-                onClick={handleSkip}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                Skip Setup
-              </button>
-            )}
+            <button
+              onClick={handleSkip}
+              className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              title={currentStep === 4 ? "Skip this step and exit to dashboard" : "Skip entire setup wizard"}
+            >
+              {currentStep === 4 ? 'Exit to Dashboard' : 'Skip Setup'}
+            </button>
             <button
               onClick={handleNext}
               disabled={loading}

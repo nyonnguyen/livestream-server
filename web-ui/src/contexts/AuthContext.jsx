@@ -24,7 +24,10 @@ export const AuthProvider = ({ children }) => {
 
     if (token && savedUser) {
       try {
-        setUser(JSON.parse(savedUser));
+        const parsedUser = JSON.parse(savedUser);
+        setUser(parsedUser);
+        // Fetch active sessions for already logged in user
+        refreshSessions();
       } catch (error) {
         console.error('Error parsing saved user:', error);
         localStorage.removeItem('token');
@@ -43,6 +46,9 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
       setUser(user);
+
+      // Fetch active sessions after successful login
+      await refreshSessions();
 
       return { success: true, user };
     } catch (error) {

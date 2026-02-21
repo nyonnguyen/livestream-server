@@ -53,7 +53,7 @@ app.use(cors({
       if (origin === process.env.CORS_ORIGIN) {
         callback(null, true);
       } else {
-        callback(new Error('Not allowed by CORS'));
+        callback(false);
       }
     } else {
       // Allow any origin (development mode)

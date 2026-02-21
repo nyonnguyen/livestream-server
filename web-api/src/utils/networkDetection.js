@@ -140,6 +140,7 @@ function categorizeInterface(ip, name) {
 /**
  * Get all network interfaces with their IP addresses
  * Prioritizes host interfaces over container interfaces
+ * Returns { interfaces: [], source: 'host'|'container', error: null|string }
  */
 function getNetworkInterfaces() {
   // Try to get host interfaces first
@@ -167,7 +168,8 @@ function getNetworkInterfaces() {
   }
 
   // Fallback to container interfaces if host detection fails
-  console.warn('Using container network interfaces (host detection failed)');
+  console.error('WARNING: Using container network interfaces (host detection failed via nsenter)');
+  console.error('This may show Docker internal IPs instead of actual host IPs');
   const interfaces = os.networkInterfaces();
   const results = [];
 

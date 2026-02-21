@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
-import axios from 'axios';
+import api from '../services/api';
 import UserRoleBadge from '../components/UserRoleBadge';
 import ConfirmDialog from '../components/ConfirmDialog';
 import {
@@ -12,8 +12,6 @@ import {
   Eye,
   Search,
 } from 'lucide-react';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 const Users = () => {
   const { t } = useTranslation();
@@ -47,9 +45,7 @@ const Users = () => {
 
   const loadUsers = async () => {
     try {
-      const response = await axios.get(`${API_URL}/api/users?include_deleted=true`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      });
+      const response = await api.get('/users?include_deleted=true');
       if (response.data.success) {
         setUsers(response.data.data);
       }
@@ -81,13 +77,7 @@ const Users = () => {
 
     setProcessing(true);
     try {
-      const response = await axios.post(
-        `${API_URL}/api/users`,
-        formData,
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-        }
-      );
+      const response = await api.post('/users', formData);
 
       if (response.data.success) {
         setShowCreateModal(false);
@@ -113,13 +103,7 @@ const Users = () => {
         updateData.password = formData.password;
       }
 
-      const response = await axios.put(
-        `${API_URL}/api/users/${selectedUser.id}`,
-        updateData,
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-        }
-      );
+      const response = await api.put(`/users/${selectedUser.id}`, updateData);
 
       if (response.data.success) {
         setShowEditModal(false);
@@ -136,9 +120,7 @@ const Users = () => {
   const handleDeleteUser = async () => {
     setProcessing(true);
     try {
-      await axios.delete(`${API_URL}/api/users/${selectedUser.id}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      });
+      await api.delete(`/users/${selectedUser.id}`);
 
       setShowDeleteDialog(false);
       setSelectedUser(null);
@@ -153,13 +135,7 @@ const Users = () => {
   const handleRestoreUser = async () => {
     setProcessing(true);
     try {
-      await axios.post(
-        `${API_URL}/api/users/${selectedUser.id}/restore`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-        }
-      );
+      await api.post(`/users/${selectedUser.id}/restore`, {});
 
       setShowRestoreDialog(false);
       setSelectedUser(null);
@@ -173,13 +149,7 @@ const Users = () => {
 
   const handleChangeRole = async (userId, roleId) => {
     try {
-      await axios.put(
-        `${API_URL}/api/users/${userId}/role`,
-        { role_id: roleId },
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-        }
-      );
+      await api.put(`/users/${userId}/role`, { role_id: roleId });
 
       loadUsers();
     } catch (error) {

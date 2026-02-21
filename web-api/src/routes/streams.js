@@ -62,7 +62,7 @@ router.get('/:id', authenticate, validateId, asyncHandler(async (req, res) => {
  * POST /api/streams
  * Create new stream
  */
-router.post('/', authenticate, validateCreateStream, asyncHandler(async (req, res) => {
+router.post('/', authenticate, logActivity('stream_create', 'stream'), validateCreateStream, asyncHandler(async (req, res) => {
   const { name, stream_key, description, protocol, max_bitrate } = req.body;
 
   // Check if name already exists
@@ -91,7 +91,7 @@ router.post('/', authenticate, validateCreateStream, asyncHandler(async (req, re
     description,
     protocol,
     max_bitrate
-  });
+  }, req.user?.id);
 
   const stream = Stream.findById(streamId);
 
@@ -106,7 +106,7 @@ router.post('/', authenticate, validateCreateStream, asyncHandler(async (req, re
  * PUT /api/streams/:id
  * Update stream
  */
-router.put('/:id', authenticate, validateUpdateStream, asyncHandler(async (req, res) => {
+router.put('/:id', authenticate, logActivity('stream_update', 'stream'), validateUpdateStream, asyncHandler(async (req, res) => {
   const stream = Stream.findById(req.params.id);
 
   if (!stream) {
@@ -142,7 +142,7 @@ router.put('/:id', authenticate, validateUpdateStream, asyncHandler(async (req, 
   console.log('[Update Stream] Request body:', req.body);
   console.log('[Update Stream] Update data:', updateData);
 
-  Stream.update(req.params.id, updateData);
+  Stream.update(req.params.id, updateData, req.user?.id);
 
   const updatedStream = Stream.findById(req.params.id);
 

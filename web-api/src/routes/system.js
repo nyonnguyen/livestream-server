@@ -9,6 +9,7 @@ const fsp = require('fs').promises;
 const os = require('os');
 const { authenticate } = require('../middleware/auth');
 const { asyncHandler } = require('../middleware/errorHandler');
+const { getNetworkInterfaces } = require('../utils/networkDetection');
 
 const execAsync = promisify(exec);
 
@@ -226,26 +227,35 @@ async function getTemperature() {
 
 async function getNetworkStats() {
   try {
-    const interfaces = os.networkInterfaces();
+    // Use getNetworkInterfaces() which tries host interfaces first via nsenter
+    const interfaces = getNetworkInterfaces();
     const stats = [];
-    for (const [name, addrs] of Object.entries(interfaces)) {
-      if (name === 'lo' || name.startsWith('docker') || name.startsWith('veth')) continue;
-      const ipv4 = addrs.find(addr => addr.family === 'IPv4');
-      if (ipv4) {
-        try {
-          const { stdout } = await execAsync(`cat /sys/class/net/${name}/statistics/rx_bytes /sys/class/net/${name}/statistics/tx_bytes 2>/dev/null`);
-          const [rxBytes, txBytes] = stdout.trim().split('\n').map(Number);
-          stats.push({
-            interface: name,
-            address: ipv4.address,
-            rxBytes: rxBytes || 0,
-            txBytes: txBytes || 0,
-            rxGB: ((rxBytes || 0) / 1024**3).toFixed(2),
-            txGB: ((txBytes || 0) / 1024**3).toFixed(2)
-          });
-        } catch (e) {
-          stats.push({ interface: name, address: ipv4.address, rxBytes: 0, txBytes: 0, rxGB: '0', txGB: '0' });
-        }
+
+    for (const iface of interfaces) {
+      try {
+        // Read network statistics from host using nsenter
+        const command = `nsenter --net=/host_proc/1/ns/net cat /sys/class/net/${iface.name}/statistics/rx_bytes /sys/class/net/${iface.name}/statistics/tx_bytes 2>/dev/null`;
+        const { stdout } = await execAsync(command);
+        const [rxBytes, txBytes] = stdout.trim().split('\n').map(Number);
+
+        stats.push({
+          interface: iface.name,
+          address: iface.address,
+          rxBytes: rxBytes || 0,
+          txBytes: txBytes || 0,
+          rxGB: ((rxBytes || 0) / 1024**3).toFixed(2),
+          txGB: ((txBytes || 0) / 1024**3).toFixed(2)
+        });
+      } catch (e) {
+        // Fallback without statistics if nsenter fails
+        stats.push({
+          interface: iface.name,
+          address: iface.address,
+          rxBytes: 0,
+          txBytes: 0,
+          rxGB: '0',
+          txGB: '0'
+        });
       }
     }
     return stats;
