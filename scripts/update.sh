@@ -160,13 +160,18 @@ if [ -f "/.dockerenv" ] || [ -d "/host_project" ]; then
         # Container doesn't have compose, use host's docker compose via nsenter
         log "Docker compose not found in container, attempting to use host's via nsenter..."
 
+        # Set PATH for nsenter commands to find docker on host
+        NSENTER_PREFIX="nsenter --target 1 --mount --uts --ipc --net --pid -- env PATH=/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin"
+
         # Try docker compose (v2) on host first
-        if nsenter --target 1 --mount --uts --ipc --net --pid -- docker compose version &> /dev/null 2>&1; then
-            COMPOSE_CMD="nsenter --target 1 --mount --uts --ipc --net --pid -- docker compose"
+        if $NSENTER_PREFIX docker compose version &> /dev/null 2>&1; then
+            USE_NSENTER=true
+            DOCKER_COMPOSE_CMD="docker compose"
             log "Using docker compose (v2) from host via nsenter"
         # Try docker-compose (v1) on host
-        elif nsenter --target 1 --mount --uts --ipc --net --pid -- docker-compose version &> /dev/null 2>&1; then
-            COMPOSE_CMD="nsenter --target 1 --mount --uts --ipc --net --pid -- docker-compose"
+        elif $NSENTER_PREFIX docker-compose version &> /dev/null 2>&1; then
+            USE_NSENTER=true
+            DOCKER_COMPOSE_CMD="docker-compose"
             log "Using docker-compose (v1) from host via nsenter"
         else
             error "Cannot find docker compose on container or host!"
@@ -179,17 +184,36 @@ if [ -f "/.dockerenv" ] || [ -d "/host_project" ]; then
         fi
     fi
 
-    log "Using compose command: $COMPOSE_CMD"
+    # Determine the host project directory for nsenter commands
+    # When using nsenter, we need to find where the project is on the host
+    if [ "$USE_NSENTER" = "true" ]; then
+        # Extract the actual host path from docker inspect
+        HOST_PROJECT_DIR=$(docker inspect livestream-api --format '{{range .Mounts}}{{if eq .Destination "/host_project"}}{{.Source}}{{end}}{{end}}' 2>/dev/null || echo "/opt/livestream-server")
+        log "Host project directory: $HOST_PROJECT_DIR"
+        log "Using compose via nsenter: $NSENTER_PREFIX $DOCKER_COMPOSE_CMD"
+
+        # Helper function to run compose commands via nsenter
+        run_compose() {
+            $NSENTER_PREFIX sh -c "cd $HOST_PROJECT_DIR && $DOCKER_COMPOSE_CMD $*"
+        }
+    else
+        log "Using compose command: $COMPOSE_CMD"
+
+        # Helper function to run compose commands directly
+        run_compose() {
+            $COMPOSE_CMD "$@"
+        }
+    fi
 
     # Pull latest images (if using pre-built images)
     log "Pulling latest Docker images..."
-    if ! $COMPOSE_CMD -f docker-compose.prod.yml pull 2>&1; then
+    if ! run_compose -f docker-compose.prod.yml pull 2>&1; then
         warn "Failed to pull images (may not exist), will build locally"
     fi
 
     # Stop containers
     log "Stopping containers..."
-    if ! $COMPOSE_CMD down 2>&1; then
+    if ! run_compose down 2>&1; then
         error "Failed to stop containers"
         echo "[UPDATE FAILED]"
         exit 1
@@ -197,7 +221,7 @@ if [ -f "/.dockerenv" ] || [ -d "/host_project" ]; then
 
     # Build containers
     log "Building containers (this may take several minutes)..."
-    if ! $COMPOSE_CMD build --no-cache 2>&1; then
+    if ! run_compose build --no-cache 2>&1; then
         error "Failed to build containers"
         echo "[UPDATE FAILED]"
         exit 1
@@ -205,7 +229,7 @@ if [ -f "/.dockerenv" ] || [ -d "/host_project" ]; then
 
     # Start containers
     log "Starting containers..."
-    if ! $COMPOSE_CMD up -d 2>&1; then
+    if ! run_compose up -d 2>&1; then
         error "Failed to start containers"
         echo "[UPDATE FAILED]"
         exit 1
@@ -216,8 +240,8 @@ if [ -f "/.dockerenv" ] || [ -d "/host_project" ]; then
     sleep 10
 
     # Check if containers are running
-    RUNNING_CONTAINERS=$($COMPOSE_CMD ps --services --filter "status=running" 2>/dev/null | wc -l)
-    TOTAL_CONTAINERS=$($COMPOSE_CMD ps --services 2>/dev/null | wc -l)
+    RUNNING_CONTAINERS=$(run_compose ps --services --filter "status=running" 2>/dev/null | wc -l)
+    TOTAL_CONTAINERS=$(run_compose ps --services 2>/dev/null | wc -l)
 
     log "Container status: $RUNNING_CONTAINERS/$TOTAL_CONTAINERS running"
 
