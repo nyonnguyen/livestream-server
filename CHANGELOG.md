@@ -10,11 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.9.2] - 2026-02-21
 
 ### Changed
-- fix: resolve 8 critical bugs in livestream server v2.9.1 (#56)
-
-
-
-## [2.9.1] - 2026-02-21
+- fix: resolve 8 critical bugs in livestream server v2.9.2 (#56)
 
 ### Fixed
 - **Stream History**: Stream history now records CREATE and UPDATE actions in addition to DELETE and RESTORE
