@@ -139,8 +139,9 @@ class ActivityLog {
   static getStats(days = 7) {
     const stmt = db.prepare(`
       SELECT
-        COUNT(*) as total_activities,
+        COUNT(*) as total,
         COUNT(DISTINCT user_id) as unique_users,
+        COUNT(DISTINCT ip_address) as unique_ips,
         COUNT(DISTINCT resource_type) as resource_types
       FROM activity_log
       WHERE created_at >= datetime('now', '-' || ? || ' days')

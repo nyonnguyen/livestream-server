@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.9.1] - 2026-02-21
+
+### Fixed
+- **Stream History**: Stream history now records CREATE and UPDATE actions in addition to DELETE and RESTORE
+- **Network Detection**: Dashboard and Settings now display host IP addresses instead of Docker container IPs
+  - System health endpoint now uses nsenter to detect host network interfaces
+  - Network interfaces API correctly maps hostIP to actual host addresses
+  - Added source field to indicate whether IPs are from host or container
+- **Session Bitrate**: Recent sessions now correctly display average bitrate (bytes_received field included in query)
+- **Session Management**: Login sessions now appear immediately after authentication without manual refresh
+  - refreshSessions() automatically called on login and app initialization
+- **User Management CORS**: Fixed CORS errors when creating users
+  - Corrected CORS error callback to use false instead of Error object
+  - Added withCredentials: true to API service configuration
+  - Replaced raw axios calls with configured API service in Users page
+- **Audit Logs**: Audit logging now properly tracks all user actions
+  - Fixed field name mapping (total instead of total_activities)
+  - Added unique_ips calculation to audit statistics
+  - Added audit logging to stream CREATE and UPDATE operations
+  - Added audit logging to authentication endpoints (login, logout, password change)
+- **Network Interface Detection**: Improved error handling and visibility
+  - Added explicit warnings when nsenter fails and container IPs are used as fallback
+  - Improved public IP detection with retry logic and better error messages
+  - Network interfaces endpoint now includes source field ('host' or 'container')
+- **Setup Wizard**: Improved UX for skipping and exiting wizard
+  - Skip Setup button now visible on all wizard steps including final step
+  - Button text changes to "Exit to Dashboard" on final step for clarity
+  - Added tooltips explaining skip functionality
+
+### Technical Details
+- Enhanced nsenter-based host network detection in system health endpoint
+- Stream model now accepts userId parameter for history tracking
+- Activity log statistics query updated to match frontend expectations
+- Public IP detection now retries failed requests with exponential backoff
+- Auth context properly initializes user sessions on mount
+
 ## [2.9.0] - 2026-02-20
 
 ### Changed

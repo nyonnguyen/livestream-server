@@ -98,7 +98,7 @@ class Stream {
   /**
    * Create new stream
    */
-  static create(streamData) {
+  static create(streamData, createdBy = null) {
     const { name, stream_key, description, protocol, max_bitrate } = streamData;
     const finalStreamKey = stream_key || this.generateStreamKey(name.toLowerCase().replace(/\s+/g, ''));
 
@@ -115,42 +115,59 @@ class Stream {
       max_bitrate || 5000
     );
 
-    return result.lastInsertRowid;
+    const streamId = result.lastInsertRowid;
+
+    // Record history
+    const StreamHistory = require('./StreamHistory');
+    const newStream = this.findById(streamId);
+    StreamHistory.recordChange(streamId, 'create', createdBy, null, newStream, null);
+
+    return streamId;
   }
 
   /**
    * Update stream
    */
-  static update(id, streamData) {
+  static update(id, streamData, updatedBy = null) {
+    // Get stream snapshot before update
+    const oldStream = this.findById(id);
+
     const { name, stream_key, description, protocol, is_active, max_bitrate } = streamData;
 
     let query = 'UPDATE streams SET ';
     const updates = [];
     const params = [];
+    const changes = {};
 
     if (name !== undefined) {
       updates.push('name = ?');
       params.push(name);
+      changes.name = { old: oldStream.name, new: name };
     }
     if (stream_key !== undefined) {
       updates.push('stream_key = ?');
       params.push(stream_key);
+      changes.stream_key = { old: oldStream.stream_key, new: stream_key };
     }
     if (description !== undefined) {
       updates.push('description = ?');
       params.push(description);
+      changes.description = { old: oldStream.description, new: description };
     }
     if (protocol !== undefined) {
       updates.push('protocol = ?');
       params.push(protocol);
+      changes.protocol = { old: oldStream.protocol, new: protocol };
     }
     if (is_active !== undefined) {
       updates.push('is_active = ?');
       params.push(is_active);
+      changes.is_active = { old: oldStream.is_active, new: is_active };
     }
     if (max_bitrate !== undefined) {
       updates.push('max_bitrate = ?');
       params.push(max_bitrate);
+      changes.max_bitrate = { old: oldStream.max_bitrate, new: max_bitrate };
     }
 
     updates.push('updated_at = CURRENT_TIMESTAMP');
@@ -158,7 +175,14 @@ class Stream {
     params.push(id);
 
     const stmt = db.prepare(query);
-    return stmt.run(...params);
+    const result = stmt.run(...params);
+
+    // Record history
+    const StreamHistory = require('./StreamHistory');
+    const updatedStream = this.findById(id);
+    StreamHistory.recordChange(id, 'update', updatedBy, changes, updatedStream, null);
+
+    return result;
   }
 
   /**

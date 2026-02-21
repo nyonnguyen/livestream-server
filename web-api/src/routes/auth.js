@@ -3,6 +3,7 @@ const router = express.Router();
 const User = require('../models/User');
 const UserSession = require('../models/UserSession');
 const Role = require('../models/Role');
+const ActivityLog = require('../models/ActivityLog');
 const { generateToken, authenticate } = require('../middleware/auth');
 const { validateLogin, validateChangePassword } = require('../middleware/validator');
 const { asyncHandler } = require('../middleware/errorHandler');
@@ -51,6 +52,9 @@ router.post('/login', validateLogin, asyncHandler(async (req, res) => {
   const role = Role.getUserRole(user.id);
   const permissions = role ? JSON.parse(role.permissions) : [];
 
+  // Log successful login
+  ActivityLog.log(user.id, 'user_login', 'user', user.id, { username: user.username }, ipAddress);
+
   res.json({
     success: true,
     data: {
@@ -78,6 +82,10 @@ router.post('/logout', authenticate, asyncHandler(async (req, res) => {
 
   // Revoke the session
   UserSession.revokeSession(tokenHash);
+
+  // Log logout
+  const ipAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.socket.remoteAddress;
+  ActivityLog.log(req.user.id, 'user_logout', 'user', req.user.id, { username: req.user.username }, ipAddress);
 
   res.json({
     success: true,
@@ -112,6 +120,10 @@ router.put('/change-password', authenticate, validateChangePassword, asyncHandle
 
   // Update password
   User.updatePassword(req.user.id, newPassword);
+
+  // Log password change
+  const ipAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.socket.remoteAddress;
+  ActivityLog.log(req.user.id, 'password_change', 'user', req.user.id, { username: req.user.username }, ipAddress);
 
   res.json({
     success: true,

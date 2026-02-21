@@ -17,49 +17,63 @@ const {
 
 /**
  * GET /api/network/detect-public-ip
- * Detect public IP address from external service
+ * Detect public IP address from external service with retry logic
  */
 router.get('/detect-public-ip', async (req, res) => {
   try {
     // Try multiple services for reliability
     const services = [
-      'https://api.ipify.org?format=json',
-      'https://api.my-ip.io/ip.json',
-      'https://ifconfig.me/ip'
+      { url: 'https://api.ipify.org?format=json', name: 'ipify' },
+      { url: 'https://api.my-ip.io/ip.json', name: 'my-ip.io' },
+      { url: 'https://ifconfig.me/ip', name: 'ifconfig.me' }
     ];
 
+    const errors = [];
+    const maxRetries = 2;
+
     for (const service of services) {
-      try {
-        const response = await axios.get(service, { timeout: 5000 });
-        let publicIP;
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          const response = await axios.get(service.url, { timeout: 8000 });
+          let publicIP;
 
-        if (typeof response.data === 'string') {
-          publicIP = response.data.trim();
-        } else if (response.data.ip) {
-          publicIP = response.data.ip;
-        }
+          if (typeof response.data === 'string') {
+            publicIP = response.data.trim();
+          } else if (response.data.ip) {
+            publicIP = response.data.ip;
+          }
 
-        if (publicIP) {
-          return res.json({
-            success: true,
-            data: { publicIP }
-          });
+          if (publicIP && /^\d+\.\d+\.\d+\.\d+$/.test(publicIP)) {
+            return res.json({
+              success: true,
+              data: { publicIP, source: service.name }
+            });
+          }
+        } catch (err) {
+          const errorMsg = `${service.name} (attempt ${attempt}/${maxRetries}): ${err.code || err.message}`;
+          errors.push(errorMsg);
+          console.log(`Failed to fetch from ${errorMsg}`);
+
+          // Wait before retry
+          if (attempt < maxRetries) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
         }
-      } catch (err) {
-        console.log(`Failed to fetch from ${service}:`, err.message);
-        continue;
       }
     }
 
-    res.status(500).json({
+    res.status(503).json({
       success: false,
-      error: 'Failed to detect public IP from all services'
+      error: 'Unable to detect public IP. Please check your internet connection or try again later.',
+      details: errors,
+      suggestion: 'Ensure the server has internet access and external services are reachable.'
     });
   } catch (error) {
-    console.error('Error detecting public IP:', error);
+    console.error('Unexpected error detecting public IP:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to detect public IP'
+      error: 'An unexpected error occurred while detecting public IP',
+      details: error.message
     });
   }
 });
@@ -74,13 +88,17 @@ router.get('/interfaces', (req, res) => {
     const bestIP = getBestIPAddress();
     const clientIP = getClientIPFromRequest(req);
 
+    // Determine source from the first interface (they're all from the same source)
+    const source = interfaces.length > 0 ? interfaces[0].source : 'unknown';
+
     res.json({
       success: true,
       data: {
         interfaces,
         recommended: bestIP,
-        clientIP, // Suggested IP based on where the request came from (host's IP)
-        hostIP: clientIP // Use client IP as the actual host IP
+        clientIP, // Suggested IP based on where the request came from (user's browser IP)
+        hostIP: bestIP, // Use the best detected IP from host network interfaces
+        source // 'host' if using actual host IPs, 'container' if using Docker container IPs
       }
     });
   } catch (error) {
