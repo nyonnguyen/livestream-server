@@ -145,6 +145,23 @@ NEW_VERSION=$(cat VERSION 2>/dev/null || echo "unknown")
 log "New version: $NEW_VERSION"
 log "Updated from version $CURRENT_VERSION to $NEW_VERSION"
 
+# Run database migration check before restarting containers
+log "Running database migration check..."
+if [ -f "$INSTALL_DIR/scripts/db-migrate.sh" ]; then
+    if sh "$INSTALL_DIR/scripts/db-migrate.sh" "$INSTALL_DIR/data/livestream.db" 2>&1; then
+        log "✓ Database migration check completed successfully"
+    else
+        error "Database migration check failed!"
+        warn "You may need to manually fix the database before proceeding"
+        warn "Check the backup files in: $INSTALL_DIR/data/backups/"
+        echo "[UPDATE FAILED]"
+        trap - EXIT
+        exit 1
+    fi
+else
+    warn "Database migration script not found, skipping pre-migration check"
+fi
+
 # Check if running in container (web update)
 if [ -f "/.dockerenv" ] || [ -d "/host_project" ]; then
     log "Detected container environment - performing automatic rebuild..."
