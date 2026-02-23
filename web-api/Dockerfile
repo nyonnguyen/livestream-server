@@ -14,8 +14,12 @@ RUN npm install --only=production
 # Copy application code
 COPY . .
 
-# Create data directory
-RUN mkdir -p /app/data
+# Create data directory with proper permissions
+RUN mkdir -p /app/data && \
+    chown -R node:node /app
+
+# Switch to non-root user
+USER node
 
 # Expose API port
 EXPOSE 3000
